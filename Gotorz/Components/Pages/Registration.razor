@@ -1,6 +1,34 @@
-﻿@page "/registration"
-<h3>Registration</h3>
+﻿@page "/register"
+@using Gotorz.Models
+
+
+<div class="container">
+    <h3>Registration</h3>
+    <form>
+        <label>First name:</label>
+        <input type="text" @bind="user.FirstName" required />
+
+        <label>Last name:</label>
+        <input type="text" @bind="user.LastName" required />
+
+        <label>Email: </label>
+        <input type="text" @bind="user.Email"  required />
+
+        <label>Password: </label>
+        <input type="text" @bind="user.Password" required />
+
+        <label>Phone number: </label>
+        <input type="text" @bind="user.PhoneNumber" required />
+
+        <button type="submit">Register</button>
+
+        <p>Already have an account <a href="/login"> Login</a></p>
+
+
+    </form>
+</div>
 
 @code {
+    private User user = new();
 
 }
