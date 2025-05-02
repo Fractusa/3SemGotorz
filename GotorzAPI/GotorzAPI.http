@@ -1,0 +1,6 @@
+@GotorzAPI_HostAddress = http://localhost:5298
+
+GET {{GotorzAPI_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
