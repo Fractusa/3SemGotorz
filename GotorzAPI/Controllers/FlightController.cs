@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using GotorzAPI.Models;
+using GotorzAPI.Services;
 //using System.Web.Http;
 
 namespace GotorzAPI.Controllers
@@ -9,32 +10,22 @@ namespace GotorzAPI.Controllers
     [ApiController]
     public class FlightController : Controller
     {
-        public IActionResult Index()
+        private AmadeusService _amadeusService;
+
+        public FlightController(AmadeusService amadeusService)
         {
-            return View();
+            _amadeusService = amadeusService;
         }
 
-        [HttpGet("flights/{city}")]
-        public async Task<IActionResult> GetFlights(string city)
+        [HttpGet]
+        public async Task<IActionResult> GetFlights(string origin, string destination, string date)
         {
-            string apiKey = "HHgMzxzswzCmOEQNl9Qa9nnB6JIEFeuG";
-            string apiUrl = $"test.api.amadeus.com";
+            var flights = await _amadeusService.SearchFlightsAsync(origin, destination, date);
 
-            using (HttpClient client = new HttpClient())
-            {
-                HttpResponseMessage response = await client.GetAsync(apiUrl);
+            if (flights == null || flights.Count == 0)
+                return NotFound("No flights found.");
 
-                if (response.IsSuccessStatusCode) 
-                {
-                    string json = await response.Content.ReadAsStringAsync();
-
-                    var flights = JsonConvert.DeserializeObject<FlightData>(json);
-
-                    
-                }
-
-                return BadRequest("Error when finding flights");
-            }
+            return Ok(flights);
         }
     }
 }
