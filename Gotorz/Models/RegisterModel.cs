@@ -4,19 +4,22 @@ namespace Gotorz.Models
 {
     public class RegisterModel
     {
-        [Required]
-        public string FirstName { get; set; }
+        [Required(ErrorMessage = "First name is required")]
+        public string FirstName { get; set; } = "test";
 
-        [Required]
+        [Required(ErrorMessage = "Last name is required")]
         public string LastName { get; set; }
 
-        [Required, EmailAddress]
+        [Required(ErrorMessage = "Email is required")]
+        [EmailAddress(ErrorMessage = "Invalid email address")]
         public string Email { get; set; }
 
-        [Required, MinLength(6, ErrorMessage = "Password must be 6 digits")]
+        [Required(ErrorMessage = "Password is required")]
+        [MinLength(6, ErrorMessage = "Password must be at least 6 characters")]
         public string Password { get; set; }
 
-        [Required, Range(10000000, 99999999, ErrorMessage = "Phone number must be 8 digits")]
-        public int PhoneNumber { get; set; }
+        [Required(ErrorMessage = "Phone number is required")]
+        [RegularExpression(@"^\d{8}$", ErrorMessage = "Phone number must be exactly 8 digits")]
+        public string PhoneNumber { get; set; }
     }
 }

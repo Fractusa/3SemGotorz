@@ -1,42 +1,60 @@
 ﻿@page "/register"
+@rendermode InteractiveServer
 @using Gotorz.Models
+@using System.ComponentModel.DataAnnotations
+@using System
 
-<EditForm Model="@registerModel" OnValidSubmit="@ValidRegisterSubmit" FormName="registerFormN">
+
+
+<EditForm Model="@registerModel" OnValidSubmit="@ValidRegisterSubmit" FormName="registerForm">
     <DataAnnotationsValidator />
-    <ValidationSummary />
     <div class="container">
         <h3>Registration</h3>
-    
-
-            <label>First name:</label>
-            <InputText @bind-value="registerModel.FirstName"/>
-
-            <label>Last name:</label>
-            <InputText @bind-value="registerModel.LastName"/>
-
-            <label>Email: </label>
-            <InputText @bind-value="registerModel.Email"/>
-
-            <label>Password: </label>
-            <InputText @bind-value="registerModel.Password" type="password"/>
-
-            <label>Phone number: </label>
-            <InputNumber @bind-value="registerModel.PhoneNumber"/>
-
-            <button type="submit"> Register</button>
 
 
-            <p>Already have an account? <a href="/login"> Login</a></p>
+        <label>First name:</label>
+        <InputText @bind-value="registerModel.FirstName"/>
+        <ValidationMessage For="@(() => registerModel.FirstName)" />
+
+        <label>Last name:</label>
+        <InputText @bind-value="registerModel.LastName" />
+        <ValidationMessage For="@(() => registerModel.LastName)" />
+
+        <label>Email: </label>
+        <InputText @bind-value="registerModel.Email" />
+        <ValidationMessage For="@(() => registerModel.Email)" />
+
+        <label>Password: </label>
+        <InputText @bind-value="registerModel.Password" type="password"/>
+        <ValidationMessage For="@(() => registerModel.Password)" />
+
+        <label>Phone number: </label>
+        <InputText @bind-value="registerModel.PhoneNumber" />
+        <ValidationMessage For="@(() => registerModel.PhoneNumber)" />
+
+        <button type="submit"> Register</button>
+
+        <p>Already have an account? <a href="/login"> Login</a></p>
+
+        @if (!string.IsNullOrEmpty(alertMessage))
+        {
+            <p style="color:green">@alertMessage</p>
+        }
+
 
 
     </div>
 </EditForm>
+
 @code {
     private RegisterModel registerModel = new RegisterModel();
     private string alertMessage;
 
+
     private async Task ValidRegisterSubmit()
     {
+        var context = new ValidationContext(registerModel);
+ 
         
         // Simulate success
         alertMessage = "Registration successful!";
