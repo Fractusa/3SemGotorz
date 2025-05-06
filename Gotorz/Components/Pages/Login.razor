@@ -1,18 +1,22 @@
 ﻿@page "/login"
+@rendermode InteractiveServer
 
 <h3>Login</h3>
 <div class="container">
     <h3>Login</h3>
     <form>
         <label>Email:</label>
-        <input type="text" required />
+        <input type="text" required @bind="Email"/>
 
         <label>Password: </label>
-        <input type="text" required />
+        <input type="text" required @bind="Password"/>
 
-        <button type="submit"> Login </button>
 
-        <p>Don't have an account? <a href="/register"> Register</a></p>
+        <p style="color:@loginColor"> <b>@loginText</b></p>
+
+            <button type="submit" @onclick="LoginCheck"> Login </button>
+
+            <p>Don't have an account? <a href="/register"> Register</a></p>
     </form>
 </div>
 
@@ -20,5 +24,16 @@
 
 
 @code {
+    private string Email { get; set; }
+    private string Password { get; set; }
 
+    string loginColor = "black";
+    string loginText = "";
+
+    private void LoginCheck()
+    {
+        //CHECK EMAIL AND PASSWORD HERE
+
+
+    }
 }
