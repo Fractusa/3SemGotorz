@@ -4,20 +4,19 @@
 <h3>Login</h3>
 <div class="container">
     <h3>Login</h3>
-    <form>
+
         <label>Email:</label>
         <input type="text" required @bind="Email"/>
 
         <label>Password: </label>
-        <input type="text" required @bind="Password"/>
+        <input type="password" required @bind="Password"/>
 
 
-        <p style="color:@loginColor"> <b>@loginText</b></p>
+        <p style="color:@loginColor"> @loginText</p>
 
-            <button type="submit" @onclick="LoginCheck"> Login </button>
+        <button type="submit" @onclick="LoginCheck"> Login </button>
 
-            <p>Don't have an account? <a href="/register"> Register</a></p>
-    </form>
+        <p>Don't have an account? <a href="/register"> Register</a></p>
 </div>
 
 
@@ -28,12 +27,23 @@
     private string Password { get; set; }
 
     string loginColor = "black";
-    string loginText = "";
+    string loginText = "test";
 
     private void LoginCheck()
     {
         //CHECK EMAIL AND PASSWORD HERE
+        if(Email == "test@gmail.com" && Password == "123456")
+        {
+            loginColor = "green";
+            loginText = "Succesful login";
 
+        }
+        else
+        {
+            loginColor = "red";
+            loginText = "Failed login";
+            
+        }
 
     }
 }
