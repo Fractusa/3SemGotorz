@@ -1,9 +1,14 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Gotorz.Models
 {
+    [Table("Users")]
     public class RegisterModel
     {
+        [Key]
+        public int Id { get; set; }
+
         [Required(ErrorMessage = "First name is required")]
         public string FirstName { get; set; } = "test";
 
