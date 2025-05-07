@@ -76,6 +76,64 @@ namespace GotorzAPI.Services
             return new List<FlightData>();
         }
 
+        public async Task<List<string>> GetHotelIdsByCityCodeAsync(string cityCode)
+        {
+            if (string.IsNullOrEmpty(accessToken))
+                await AuthenticateAsync();
+
+            _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", accessToken);
+
+            var response = await _httpClient.GetAsync($"https://test.api.amadeus.com/v1/reference-data/locations/hotels/by-city?cityCode={cityCode}");
+
+            if (response.IsSuccessStatusCode)
+            {
+                string json = await response.Content.ReadAsStringAsync();
+                var jsonDoc = JsonDocument.Parse(json);
+
+                return jsonDoc.RootElement.GetProperty("data").EnumerateArray().Select(x => x.GetProperty("hotelId").GetString()).ToList();
+            }
+
+            return null;
+        }
+
+        public async Task<List<HotelData>> SearchHotelsAsync(List<string> hotelIds, string checkIn, string checkOut, int adults)
+        {
+            if (string.IsNullOrEmpty(accessToken))
+                await AuthenticateAsync();
+
+            _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", accessToken);
+
+            var hotelIdsJoined = string.Join(",", hotelIds);
+            var response = await _httpClient.GetAsync($"https://test.api.amadeus.com/v2/shopping/hotel-offers?hotelIds={hotelIdsJoined}&checkInDate={checkIn}&checkOutDate={checkOut}&adults={adults}");
+
+            if (response.IsSuccessStatusCode)
+            {
+                string json = await response.Content.ReadAsStringAsync();
+                var jsonDoc = JsonDocument.Parse(json);
+
+                var hotels = new List<HotelData>();
+
+                foreach (var item in jsonDoc.RootElement.GetProperty("data").EnumerateArray())
+                {
+                    var hotel = item.GetProperty("hotel");
+                    var offer = item.GetProperty("offers")[0];
+
+                    hotels.Add(new HotelData
+                    {
+                        HotelName = hotel.GetProperty("name").GetString(),
+                        HotelId = hotel.GetProperty("hotelId").GetString(),
+                        Price = decimal.Parse(offer.GetProperty("price").GetProperty("total").GetString()),
+                        CheckIn = checkIn,
+                        CheckOut = checkOut
+                    });
+                }
+
+                return hotels;
+            }
+
+            return new List<HotelData>();
+        }
+
         public class AuthResponse
         {
             [JsonPropertyName("access_token")]
