@@ -4,6 +4,7 @@
 @using Gotorz.Data
 @using System.ComponentModel.DataAnnotations
 @using System
+@using Microsoft.AspNetCore.Identity
 @inject ApplicationDbContext db
 
 
@@ -56,16 +57,21 @@
     private async Task ValidRegisterSubmit()
     {
         var context = new ValidationContext(registerModel);
+        var hasher = new PasswordHasher<RegisterModel>();
+
+        string hashedPassword = hasher.HashPassword(registerModel, registerModel.Password);
+        registerModel.HashedPassword = hashedPassword;
 
 
-        // Simulate success
-        alertMessage = "Registration successful!";
+        
 
      
 
-        // TODO: Save to database or call API here
         db.Users.Add(registerModel);
         await db.SaveChangesAsync();
+
+        // Simulate success
+        alertMessage = "Registration successful!";
 
         // Reset form
         registerModel = new RegisterModel();

@@ -1,22 +1,28 @@
 ﻿@page "/login"
 @rendermode InteractiveServer
+@inject ApplicationDbContext db
+@using Gotorz.Data
+@using Models
+@using Microsoft.EntityFrameworkCore
+@using Microsoft.AspNetCore.Identity
+
 
 <h3>Login</h3>
 <div class="container">
     <h3>Login</h3>
 
-        <label>Email:</label>
-        <input type="text" required @bind="Email"/>
+    <label>Email:</label>
+    <input type="text" required @bind="Email"/>
 
-        <label>Password: </label>
-        <input type="password" required @bind="Password"/>
+    <label>Password: </label>
+    <input type="password" required @bind="Password"/>
 
 
-        <p style="color:@loginColor"> @loginText</p>
+    <p style="color:@loginColor"> @loginText</p>
 
-        <button type="submit" @onclick="LoginCheck"> Login </button>
+    <button type="submit" @onclick="LoginCheck"> Login </button>
 
-        <p>Don't have an account? <a href="/register"> Register</a></p>
+    <p>Don't have an account? <a href="/register"> Register</a></p>
 </div>
 
 
@@ -29,19 +35,30 @@
     string loginColor = "black";
     string loginText = "test";
 
-    private void LoginCheck()
+    private async Task LoginCheck()
     {
+        var user = await db.Users.FirstOrDefaultAsync(u => u.Email == Email);
+
         //CHECK EMAIL AND PASSWORD HERE
-        if(Email == "test@gmail.com" && Password == "123456")
+        if(user == null)
+        {
+            loginColor = "red";
+            loginText = "User not found";
+            return;
+        }
+        var hasher = new PasswordHasher<RegisterModel>();
+        var hasherResult = hasher.VerifyHashedPassword(user, user.HashedPassword, Password);
+
+        if(hasherResult == PasswordVerificationResult.Success)
         {
             loginColor = "green";
             loginText = "Succesful login";
-
+            // TODO: Add session/token logic here
         }
         else
         {
             loginColor = "red";
-            loginText = "Failed login";
+            loginText = "Invalid password";
             
         }
 
