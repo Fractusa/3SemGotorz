@@ -22,7 +22,7 @@ namespace GotorzAPI.Controllers
             var hotelIds = await _amadeusService.GetHotelIdsByCityCodeAsync(city);
 
             if (!hotelIds.Any())
-                return NotFound($"No hotels found in {city}");
+                return NotFound($"No hotels found in {city.ToUpper()}");
 
             var offers = await _amadeusService.SearchHotelsAsync(hotelIds, checkIn, checkOut, adults);
 
