@@ -15,25 +15,46 @@
         <h3>Registration</h3>
 
 
-        <label>First name:</label>
-        <InputText @bind-value="registerModel.FirstName"/>
-        <ValidationMessage For="@(() => registerModel.FirstName)" />
+        <div class="form-field-inline">
+            <label for="firstName">First name:</label>
+            <div class="input-area">
+                <InputText id="firstName" @bind-value="registerModel.FirstName" class="form-control" />
+                <ValidationMessage For="@(() => registerModel.FirstName)" />
+            </div>
+        </div>
 
-        <label>Last name:</label>
-        <InputText @bind-value="registerModel.LastName" />
-        <ValidationMessage For="@(() => registerModel.LastName)" />
+        <div class="form-field-inline">
+            <label for="lastName">Last name:</label>
+            <div class="input-area">
+                <InputText id="lastName" @bind-value="registerModel.LastName" class="form-control" />
+                <ValidationMessage For="@(() => registerModel.LastName)" />
+            </div>
+        </div>
 
-        <label>Email: </label>
-        <InputText @bind-value="registerModel.Email" />
-        <ValidationMessage For="@(() => registerModel.Email)" />
 
-        <label>Password: </label>
-        <InputText @bind-value="registerModel.Password" type="password"/>
-        <ValidationMessage For="@(() => registerModel.Password)" />
+        <div class="form-field-inline">
+            <label for="email">Email:</label>
+            <div class="input-area">
+                <InputText id="email" @bind-value="registerModel.Email" class="form-control" />
+                <ValidationMessage For="@(() => registerModel.Email)" />
+            </div>
+        </div>
 
-        <label>Phone number: </label>
-        <InputText @bind-value="registerModel.PhoneNumber" />
-        <ValidationMessage For="@(() => registerModel.PhoneNumber)" />
+        <div class="form-field-inline">
+            <label for="password">Password:</label>
+            <div class="input-area">
+                <InputText id="password" @bind-value="registerModel.Password" type="password" class="form-control" />
+                <ValidationMessage For="@(() => registerModel.Password)" />
+            </div>
+        </div>
+
+        <div class="form-field-inline">
+            <label for="phoneNumber">Phone number:</label>
+            <div class="input-area">
+                <InputText id="phoneNumber" @bind-value="registerModel.PhoneNumber" class="form-control" />
+                <ValidationMessage For="@(() => registerModel.PhoneNumber)" />
+            </div>
+        </div>
 
         <button type="submit"> Register</button>
 
