@@ -1,0 +1,30 @@
+﻿@page "/UserPage"
+@rendermode InteractiveServer
+@using Services
+@inject AuthStateService authState
+@implements IDisposable
+
+<h3>UserPage</h3>
+
+@if (authState.IsLoggedIn)
+{
+    <p>Welcome @authState.UserEmail</p>
+    <button @onclick="authState.Logout">Logout</button>
+}
+else
+{
+    <p>You are not logged in</p>
+}
+
+
+@code {
+    protected override void OnInitialized()
+    {
+        authState.OnChange += StateHasChanged;
+    }
+
+    public void Dispose()
+    {
+        authState.OnChange -= StateHasChanged;
+    }
+}
