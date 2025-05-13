@@ -6,15 +6,17 @@ namespace Gotorz.Services
     {
         public bool IsLoggedIn { get; set; }
         public string UserEmail { get; set; }
+        public string UserRole { get; set; }
 
         //Event to allow other component to subscribe to, allowing them to refresh when login state changes
         public event Action? OnChange;
 
         //Method to login the user and set the login state
-        public void Login(string email)
+        public void Login(string email,string role)
         {
             IsLoggedIn = true;
             UserEmail = email;
+            UserRole = role;
             NotifyStateChanged();
 
         }
