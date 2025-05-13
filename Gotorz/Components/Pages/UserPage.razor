@@ -17,11 +17,7 @@ else
     <p>You are not logged in</p>
 }
 
-@if (authState.IsLoggedIn && authState.UserRole == "User")
-{
-    <p>@authState.UserRole</p>
-}
-else if (authState.IsLoggedIn && authState.UserRole == "Employee")
+@if (authState.IsLoggedIn && authState.UserRole == "Employee")
 {
     <p>@authState.UserRole</p>
     <button @onclick=EmployeePanelRedirect>Employee panel</button>
@@ -51,6 +47,7 @@ else if (authState.IsLoggedIn && authState.UserRole == "Admin")
     {
         navigation.NavigateTo("/admin");
     }
+
     private void EmployeePanelRedirect()
     {
         navigation.NavigateTo("/employee");
