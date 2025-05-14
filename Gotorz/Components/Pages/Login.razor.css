@@ -1,0 +1,98 @@
+﻿::deep .form-field-inline {
+    display: flex;
+    align-items: baseline;
+    margin-bottom: 1rem;
+}
+
+    ::deep .form-field-inline label {
+        margin-right: 0.5rem;
+        flex-basis: 110px;
+        flex-shrink: 0;
+        text-align: left;
+    }
+
+    ::deep .form-field-inline .input-area {
+        flex-grow: 0.1;
+        display: flex;
+        flex-direction: column;
+    }
+
+    ::deep .form-field-inline .form-control {
+        width: 100%;
+    }
+
+::deep .form-control {
+    padding: 0.375rem 0.75rem;
+    font-size: 1rem;
+    line-height: 1.5;
+    color: #495057;
+    background-color: #fff;
+    background-clip: padding-box;
+    border: 1px solid #ced4da;
+    border-radius: 0.25rem;
+    transition: border-color .15s ease-in-out,box-shadow .15s ease-in-out;
+}
+
+.container {
+    background-color: #fff;
+    border: 1px solid #dee2e6;
+    border-radius: 0.5rem;
+    padding: 2rem;
+    margin: 2rem auto;
+    max-width: 500px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
+    .container h3 {
+        margin-top: 0;
+        margin-bottom: 1.5rem;
+        color: #333;
+    }
+
+
+    .container button[type="submit"] {
+        margin-top: 1rem;
+        padding: 0.5rem 1.5rem;
+        font-size: 1rem;
+        color: #fff;
+        background-color: #007bff;
+        border: none;
+        border-radius: 0.25rem;
+        cursor: pointer;
+        transition: background-color 0.15s ease-in-out;
+    }
+
+        .container button[type="submit"]:hover {
+            background-color: #0056b3;
+        }
+
+    .container p {
+        margin-top: 1.5rem;
+        font-size: 0.9rem;
+        color: #555;
+    }
+
+        .container p a {
+            color: #007bff;
+            text-decoration: none;
+        }
+
+            .container p a:hover {
+                text-decoration: underline;
+            }
+
+
+        .container p[style="color:green"] {
+            margin-top: 1rem;
+            font-weight: bold;
+        }
+
+.bottom-right-image {
+    position: fixed;
+    bottom: 10px;
+    right: 10px;
+    width: 550px;
+    height: auto;
+    z-index: 1000;
+}
