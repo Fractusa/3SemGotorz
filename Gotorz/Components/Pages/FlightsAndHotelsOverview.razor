@@ -1,1 +1,129 @@
-﻿
+﻿@using Gotorz.Models;
+@using Gotorz.Services;
+@using System.ComponentModel.DataAnnotations
+@using Microsoft.AspNetCore.Components.Forms
+
+@page "/flightsandhotels"
+@inject TravelAPIService travelAPI
+
+<h3 class="mb-3">Search Flights and Hotels</h3>
+
+<EditForm Model="@searchModel" OnValidSubmit="HandleSearch" formname ="SearchForm">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="form-group mb-2">
+        <label>Origin Airport Code:</label>
+        <InputText class="form-control" @bind-Value="searchModel.Origin" />
+    </div>
+
+    <div class="form-group mb-2">
+        <label>Destination Airport Code:</label>
+        <InputText class="form-control" @bind-Value="searchModel.Destination" />
+    </div>
+
+    <div class="form-group mb-2">
+        <label>Departure Date:</label>
+        <InputDate class="form-control" @bind-Value="searchModel.DepartureDate" />
+    </div>
+
+    <div class="form-group mb-2">
+        <label>Return Date:</label>
+        <InputDate class="form-control" @bind-Value="searchModel.ReturnDate" />
+    </div>
+
+    <div class="form-group mb-2">
+        <label>Adults:</label>
+        <InputNumber class="form-control" @bind-Value="searchModel.Adults" />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Search</button>
+</EditForm>
+
+<hr />
+
+@if (DepartureFlights.Any())
+{
+    <h4>Departure Flights</h4>
+    <ul>
+        @foreach (var flight in DepartureFlights)
+        {
+            <li>@flight.DepartureAirport → @flight.ArrivalAirport - @flight.DepartureTime.ToShortTimeString() - @flight.Price DKK</li>
+        }
+    </ul>
+}
+@if (ReturnFlights.Any())
+{
+    <h4>Return Flights</h4>
+    <ul>
+        @foreach (var flight in ReturnFlights)
+        {
+            <li>@flight.DepartureAirport → @flight.ArrivalAirport - @flight.DepartureTime.ToShortTimeString() - @flight.Price DKK</li>
+        }
+    </ul>
+}
+@if (Hotels.Any())
+{
+    <h4>Hotels</h4>
+    <ul>
+        @foreach (var hotel in Hotels)
+        {
+            <li>@hotel.HotelName - @hotel.Price DKK (from @hotel.CheckIn to @hotel.CheckOut)</li>
+        }
+    </ul>
+}
+
+@code {
+    private SearchModel searchModel = new()
+        {
+            Origin = "CPH",
+            Destination = "LON",
+            DepartureDate = DateTime.Today.AddDays(10),
+            ReturnDate = DateTime.Today.AddDays(17),
+            Adults = 1
+        };
+
+    private List<FlightData> DepartureFlights = new();
+    private List<FlightData> ReturnFlights = new();
+    private List<HotelData> Hotels = new();
+
+    private async Task HandleSearch()
+    {
+        DepartureFlights = await travelAPI.GetFlightsAsync(
+            searchModel.Origin,
+            searchModel.Destination,
+            searchModel.DepartureDate.ToString("yyyy-MM-dd")
+        );
+
+        ReturnFlights = await travelAPI.GetFlightsAsync(
+            searchModel.Destination,
+            searchModel.Origin,
+            searchModel.ReturnDate.ToString("yyyy-MM-dd")
+        );
+
+        Hotels = await travelAPI.GetHotelsAsync(
+            searchModel.Destination,
+            searchModel.DepartureDate.ToString("yyyy-MM-dd"),
+            searchModel.ReturnDate.ToString("yyyy-MM-dd"),
+            searchModel.Adults
+        );
+    }
+
+    public class SearchModel
+    {
+        [Required]
+        public string Origin { get; set; }
+
+        [Required]
+        public string Destination { get; set; }
+
+        [Required]
+        public DateTime DepartureDate { get; set; }
+
+        [Required]
+        public DateTime ReturnDate { get; set; }
+
+        [Range(1, 5)]
+        public int Adults { get; set; }
+    }
+}

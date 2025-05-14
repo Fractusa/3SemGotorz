@@ -1,6 +1,6 @@
 ﻿namespace Gotorz.Models
 {
-    public class Hotel
+    public class HotelData
     {
         public string HotelName { get; set; }
         public string HotelId { get; set; }

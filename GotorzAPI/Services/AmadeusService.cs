@@ -4,6 +4,9 @@ using Newtonsoft.Json;
 using GotorzAPI.Models;
 using System.Text.Json.Serialization;
 using System.Text.Json;
+using Microsoft.Extensions.Options;
+using System;
+using System.Diagnostics;
 
 namespace GotorzAPI.Services
 {
@@ -11,10 +14,14 @@ namespace GotorzAPI.Services
     {
         private HttpClient _httpClient;
         private string accessToken;
+        private readonly string _apiKey;
+        private readonly string _apiSecret;
 
-        public AmadeusService(HttpClient httpClient)
+        public AmadeusService(HttpClient httpClient, IOptions<AmadeusSettings> config)
         {
             _httpClient = httpClient;
+            _apiKey = config.Value.ClientId;
+            _apiSecret = config.Value.ClientSecret;
         }
 
         public async Task AuthenticateAsync()
@@ -22,8 +29,8 @@ namespace GotorzAPI.Services
             var content = new FormUrlEncodedContent(new[]
             {
                 new KeyValuePair<string, string>("grant_type", "client_credentials"),
-                new KeyValuePair<string, string>("client_id", "HHgMzxzswzCmOEQNl9Qa9nnB6JIEFeuG"),
-                new KeyValuePair<string, string>("client_secret", "FXIttmBlzdy91nGO")
+                new KeyValuePair<string, string>("client_id", _apiKey),
+                new KeyValuePair<string, string>("client_secret", _apiSecret)
             });
 
             var response = await _httpClient.PostAsync("https://test.api.amadeus.com/v1/security/oauth2/token", content);
@@ -103,12 +110,12 @@ namespace GotorzAPI.Services
 
             _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", accessToken);
 
-            var hotelIdsJoined = string.Join(",", hotelIds);
+            var hotelIdsJoined = string.Join(",", hotelIds.Take(20));
             var response = await _httpClient.GetAsync($"https://test.api.amadeus.com/v2/shopping/hotel-offers?hotelIds={hotelIdsJoined}&checkInDate={checkIn}&checkOutDate={checkOut}&adults={adults}");
+            string json = await response.Content.ReadAsStringAsync();
 
             if (response.IsSuccessStatusCode)
-            {
-                string json = await response.Content.ReadAsStringAsync();
+            {              
                 var jsonDoc = JsonDocument.Parse(json);
 
                 var hotels = new List<HotelData>();
@@ -129,6 +136,15 @@ namespace GotorzAPI.Services
                 }
 
                 return hotels;
+            }
+
+            if (!response.IsSuccessStatusCode)
+            {
+                Trace.WriteLine($"Hotel offer API failed: {response.StatusCode}");
+                Trace.WriteLine($"Response content: {json}");
+                Console.WriteLine($"Hotel offer API failed: {response.StatusCode}");
+                Console.WriteLine($"Response content: {json}");
+                return new List<HotelData>(); // Exit early on error
             }
 
             return new List<HotelData>();

@@ -11,7 +11,9 @@ builder.Services.AddRazorComponents()
 builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddScoped<AuthStateService>();
+builder.Services.AddScoped<TravelAPIService>();
 
+builder.Services.AddHttpClient();
 builder.Services.AddControllersWithViews();
 
 var app = builder.Build();

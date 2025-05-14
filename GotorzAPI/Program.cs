@@ -5,12 +5,11 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.WebHost.ConfigureKestrel(options => { });
+builder.Services.Configure<AmadeusSettings>(builder.Configuration.GetSection("Amadeus"));
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-
-
 
 builder.Services.AddScoped<AmadeusService>();
 builder.Services.AddHttpClient<AmadeusService>();
