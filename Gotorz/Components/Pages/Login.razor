@@ -13,13 +13,19 @@
 <h3>Login</h3>
 <div class="container">
     <h3>Login</h3>
+    <div class="form-field-inline">
+        <label>Email:</label>
+        <div class="input-area">
+            <input type="text" required @bind="Email" class="form-control" />
+        </div>
+    </div>
 
-    <label>Email:</label>
-    <input type="text" required @bind="Email"/>
-
-    <label>Password: </label>
-    <input type="password" required @bind="Password"/>
-
+    <div class="form-field-inline">
+        <label>Password: </label>
+        <div class="input-area">
+            <input type="password" required @bind="Password" class="form-control" />
+        </div>
+    </div>
 
     <p style="color:@loginColor"> @loginText</p>
 
@@ -27,6 +33,8 @@
 
     <p>Don't have an account? <a href="/register"> Register</a></p>
 </div>
+
+<img src="/images/gotorz.svg" alt="Travel image" class="bottom-right-image">
 
 
 
