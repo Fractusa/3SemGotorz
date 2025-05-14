@@ -111,7 +111,7 @@ namespace GotorzAPI.Services
             _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", accessToken);
 
             var hotelIdsJoined = string.Join(",", hotelIds.Take(20));
-            var response = await _httpClient.GetAsync($"https://test.api.amadeus.com/v2/shopping/hotel-offers?hotelIds={hotelIdsJoined}&checkInDate={checkIn}&checkOutDate={checkOut}&adults={adults}");
+            var response = await _httpClient.GetAsync($"https://test.api.amadeus.com/v3/shopping/hotel-offers?hotelIds={hotelIdsJoined}&checkInDate={checkIn}&checkOutDate={checkOut}&adults={adults}");
             string json = await response.Content.ReadAsStringAsync();
 
             if (response.IsSuccessStatusCode)
@@ -130,6 +130,7 @@ namespace GotorzAPI.Services
                         HotelName = hotel.GetProperty("name").GetString(),
                         HotelId = hotel.GetProperty("hotelId").GetString(),
                         Price = decimal.Parse(offer.GetProperty("price").GetProperty("total").GetString()),
+                        Currency = offer.GetProperty("price").GetProperty("currency").GetString(),
                         CheckIn = checkIn,
                         CheckOut = checkOut
                     });
