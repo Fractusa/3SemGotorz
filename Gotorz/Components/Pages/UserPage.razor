@@ -1,0 +1,55 @@
+﻿@page "/UserPage"
+@rendermode InteractiveServer
+@using Services
+@inject AuthStateService authState
+@inject NavigationManager navigation
+@implements IDisposable
+
+<h3>UserPage</h3>
+
+@if (authState.IsLoggedIn)
+{
+    <p>Welcome @authState.UserEmail</p>
+    <button @onclick="authState.Logout">Logout</button>
+}
+else
+{
+    <p>You are not logged in</p>
+}
+
+@if (authState.IsLoggedIn && authState.UserRole == "Employee")
+{
+    <p>@authState.UserRole</p>
+    <button @onclick=EmployeePanelRedirect>Employee panel</button>
+}
+else if (authState.IsLoggedIn && authState.UserRole == "Admin")
+{
+    <p>@authState.UserRole</p>
+    <button @onclick=EmployeePanelRedirect>Employee panel</button>
+    <button @onclick=AdminPanelRedirect>Admin panel</button>
+}
+
+@code {
+    //Subscribes to the OnChange event from AuthStateService when initialized, allowing the page to automatically call StateHasChanged() whenever the login state from
+    //AuthStateService changes. StateHasChanged is a Blazor method that re-renders the UI.
+    protected override void OnInitialized()
+    {
+        authState.OnChange += StateHasChanged;
+    }
+
+    //When the page is closed or redirected away from, this method unsubscribes the page from the OnChange event.
+    public void Dispose()
+    {
+        authState.OnChange -= StateHasChanged;
+    }
+
+    private void AdminPanelRedirect()
+    {
+        navigation.NavigateTo("/admin");
+    }
+
+    private void EmployeePanelRedirect()
+    {
+        navigation.NavigateTo("/employee");
+    }
+}

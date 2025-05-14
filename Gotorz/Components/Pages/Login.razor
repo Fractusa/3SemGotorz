@@ -1,8 +1,11 @@
 ﻿@page "/login"
 @rendermode InteractiveServer
 @inject ApplicationDbContext db
+@inject NavigationManager navigation
+@inject AuthStateService authState
 @using Gotorz.Data
-@using Models
+@using Gotorz.Models
+@using Gotorz.Services
 @using Microsoft.EntityFrameworkCore
 @using Microsoft.AspNetCore.Identity
 
@@ -53,6 +56,10 @@
         {
             loginColor = "green";
             loginText = "Succesful login";
+            authState.Login(user.Email,user.Role);
+            navigation.NavigateTo("/UserPage");
+
+
             // TODO: Add session/token logic here
         }
         else

@@ -1,0 +1,60 @@
+﻿@page "/admin"
+@rendermode InteractiveServer
+@using Gotorz.Services
+@inject AuthStateService authState
+@inject NavigationManager navigation
+@implements IDisposable
+
+@if (!authState.IsLoggedIn)
+{
+    <p>Redirecting to the login page</p>
+}
+else if(authState.UserRole != "Admin")
+{
+    <p>Access denied</p>
+}
+else
+{
+    <p>Welcome to the admin panel, @authState.UserEmail</p>
+
+    //admin information/functionality goes here
+    <button @onclick=UserManagementRedirect>Manage users</button>
+
+}
+
+
+
+
+
+@code {
+    protected override void OnInitialized()
+    {
+        authState.OnChange += StateHasChanged;
+
+    }
+
+    
+    //Checks whether the user should be redirected to the login page or not, after the page is rendered.
+    private bool redirectChecked = false;
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!redirectChecked)
+        {
+            redirectChecked = true;
+
+            //If the user isn't logged in or does not have the required role, redirect the user to the login page.
+            if (!authState.IsLoggedIn || (authState.UserRole != "Admin" && authState.UserRole != "Employee"))
+            {
+                navigation.NavigateTo("/login", true);
+            }
+        }
+    }
+    private void UserManagementRedirect()
+    {
+        navigation.NavigateTo("/admin/user-management");
+    }
+    public void Dispose()
+    {
+        authState.OnChange -= StateHasChanged;
+    }
+}

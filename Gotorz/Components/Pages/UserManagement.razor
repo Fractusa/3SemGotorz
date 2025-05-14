@@ -1,0 +1,107 @@
+﻿@page "/admin/user-management"
+@rendermode InteractiveServer
+@using Gotorz.Services
+@using Gotorz.Data
+@using Gotorz.Models
+@using Microsoft.EntityFrameworkCore
+@inject ApplicationDbContext db
+@inject AuthStateService authState
+@inject NavigationManager navigation
+
+<h3>User Management</h3>
+
+@if(!authState.IsLoggedIn || authState.UserRole != "Admin")
+{
+    <p>Redirecting to login </p>
+    <p>Welcome to the User Management panel, @authState.UserRole</p>
+}
+else if (users == null)
+{
+    <p>Loading users...</p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Role</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var user in users)
+            {
+                <tr>
+                    <td><input @bind="user.Email" /></td>
+                    <td><input @bind="user.PhoneNumber" /></td>
+                    <td><input @bind="user.Role" /></td>
+                    <td>
+                        <button class="btn btn-primary" @onclick="() => UpdateUser(user)">Save</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <p>Back to <a href="/admin"> Admin panel</a></p>
+}
+
+
+
+
+
+
+
+
+
+
+
+@code {
+    private bool redirectChecked = false;
+    private List<RegisterModel>? users;
+
+    protected override async Task OnInitializedAsync()
+    {
+        authState.OnChange += StateHasChanged;
+
+        //Checks whether user is logged in and if the user role is admin.
+        //If the check passes load the users from the database
+        if (authState.IsLoggedIn && authState.UserRole == "Admin")
+        {
+            users = await db.Users.ToListAsync();
+        }
+    }
+
+    //Updates the user when the Save button is clicked
+    private async Task UpdateUser(RegisterModel user)
+    {
+        db.Users.Update(user);
+        await db.SaveChangesAsync();
+    }
+
+
+
+    //Checks whether the user should be redirected to the login page or not, after the page is rendered.
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!redirectChecked)
+        {
+            redirectChecked = true;
+
+            //If the user isn't logged in or does not have the required role, redirect the user to the login page.
+            if (!authState.IsLoggedIn || (authState.UserRole != "Admin"))
+            {
+                navigation.NavigateTo("/login", true);
+            }
+        }
+
+    }
+    public void Dispose()
+    {
+        authState.OnChange -= StateHasChanged;
+    }
+
+
+}
