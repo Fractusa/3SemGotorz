@@ -2,13 +2,14 @@
 @using Gotorz.Services;
 @using System.ComponentModel.DataAnnotations
 @using Microsoft.AspNetCore.Components.Forms
+@rendermode InteractiveServer
 
 @page "/flightsandhotels"
 @inject TravelAPIService travelAPI
 
 <h3 class="mb-3">Search Flights and Hotels</h3>
 
-<EditForm Model="@searchModel" OnValidSubmit="HandleSearch" formname ="SearchForm">
+<EditForm Model="@searchModel" OnValidSubmit="HandleSearch" FormName ="SearchForm">
     <DataAnnotationsValidator />
     <ValidationSummary />
 
@@ -41,6 +42,8 @@
 </EditForm>
 
 <hr />
+
+<p><strong>Debug:</strong> @searchModel.Origin → @searchModel.Destination</p>
 
 @if (DepartureFlights.Any())
 {
@@ -92,13 +95,15 @@
         DepartureFlights = await travelAPI.GetFlightsAsync(
             searchModel.Origin,
             searchModel.Destination,
-            searchModel.DepartureDate.ToString("yyyy-MM-dd")
+            searchModel.DepartureDate.ToString("yyyy-MM-dd"),
+            searchModel.Adults
         );
 
         ReturnFlights = await travelAPI.GetFlightsAsync(
             searchModel.Destination,
             searchModel.Origin,
-            searchModel.ReturnDate.ToString("yyyy-MM-dd")
+            searchModel.ReturnDate.ToString("yyyy-MM-dd"),
+            searchModel.Adults
         );
 
         Hotels = await travelAPI.GetHotelsAsync(

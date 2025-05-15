@@ -17,11 +17,28 @@ namespace GotorzAPI.Services
         private readonly string _apiKey;
         private readonly string _apiSecret;
 
+        private readonly Dictionary<string, decimal> exchangeRates = new()
+        {
+            { "EUR", 7.45m },
+            { "USD", 6.90m },
+            { "GBP", 8.65m },
+            { "DKK", 1.0m }
+        };
+
         public AmadeusService(HttpClient httpClient, IOptions<AmadeusSettings> config)
         {
             _httpClient = httpClient;
             _apiKey = config.Value.ClientId;
             _apiSecret = config.Value.ClientSecret;
+        }
+
+        private decimal ConvertToDKK(decimal amount, string currency)
+        {
+            if (exchangeRates.TryGetValue(currency.ToUpper(), out decimal rate))
+            {
+                return Math.Round(amount * rate, 2);
+            }
+            return amount;
         }
 
         public async Task AuthenticateAsync()
@@ -43,7 +60,7 @@ namespace GotorzAPI.Services
             }
         }
 
-        public async Task<List<FlightData>> SearchFlightsAsync(string origin, string destination, string date)
+        public async Task<List<FlightData>> SearchFlightsAsync(string origin, string destination, string date, int adults)
         {
             if (string.IsNullOrEmpty(accessToken))
             {
@@ -52,7 +69,7 @@ namespace GotorzAPI.Services
 
             _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", accessToken);
 
-            var response = await _httpClient.GetAsync($"https://test.api.amadeus.com/v2/shopping/flight-offers?originLocationCode={origin}&destinationLocationCode={destination}&departureDate={date}&adults=1&max=5");
+            var response = await _httpClient.GetAsync($"https://test.api.amadeus.com/v2/shopping/flight-offers?originLocationCode={origin}&destinationLocationCode={destination}&departureDate={date}&adults={adults}&max=5");
 
             if (response.IsSuccessStatusCode)
             {
@@ -65,6 +82,8 @@ namespace GotorzAPI.Services
                 {
                     var firstItinerary = flight.GetProperty("itineraries")[0];
                     var firstSegment = firstItinerary.GetProperty("segments")[0];
+                    var price = decimal.Parse(flight.GetProperty("price").GetProperty("total").GetString());
+                    var currency = flight.GetProperty("price").GetProperty("currency").GetString();
 
                     flights.Add(new FlightData
                     {
@@ -73,7 +92,8 @@ namespace GotorzAPI.Services
                         ArrivalAirport = firstSegment.GetProperty("arrival").GetProperty("iataCode").GetString(),
                         DepartureTime = DateTime.Parse(firstSegment.GetProperty("departure").GetProperty("at").GetString()),
                         ArrivalTime = DateTime.Parse(firstSegment.GetProperty("arrival").GetProperty("at").GetString()),
-                        Price = decimal.Parse(flight.GetProperty("price").GetProperty("total").GetString())
+                        Price = ConvertToDKK(price, currency),
+                        Currency = "DKK"
                     });
                 }
 
@@ -124,13 +144,15 @@ namespace GotorzAPI.Services
                 {
                     var hotel = item.GetProperty("hotel");
                     var offer = item.GetProperty("offers")[0];
+                    var price = decimal.Parse(offer.GetProperty("price").GetProperty("total").GetString());
+                    var currency = offer.GetProperty("price").GetProperty("currency").GetString();
 
                     hotels.Add(new HotelData
                     {
                         HotelName = hotel.GetProperty("name").GetString(),
                         HotelId = hotel.GetProperty("hotelId").GetString(),
-                        Price = decimal.Parse(offer.GetProperty("price").GetProperty("total").GetString()),
-                        Currency = offer.GetProperty("price").GetProperty("currency").GetString(),
+                        Price = ConvertToDKK(price, currency),
+                        Currency = "DKK",
                         CheckIn = checkIn,
                         CheckOut = checkOut
                     });

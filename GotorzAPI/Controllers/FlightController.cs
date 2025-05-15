@@ -18,9 +18,9 @@ namespace GotorzAPI.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetFlights(string origin, string destination, string date)
+        public async Task<IActionResult> GetFlights(string origin, string destination, string date, int adults)
         {
-            var flights = await _amadeusService.SearchFlightsAsync(origin, destination, date);
+            var flights = await _amadeusService.SearchFlightsAsync(origin, destination, date, adults);
 
             if (flights == null || flights.Count == 0)
                 return NotFound("No flights found.");

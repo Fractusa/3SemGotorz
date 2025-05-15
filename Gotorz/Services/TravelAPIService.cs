@@ -13,9 +13,9 @@ namespace Gotorz.Services
             _httpClient = httpClient;
         }
 
-        public async Task<List<FlightData>> GetFlightsAsync(string origin, string destination, string date)
+        public async Task<List<FlightData>> GetFlightsAsync(string origin, string destination, string date, int adults)
         {
-            var url = $"http://localhost:5000/api/flight?origin={origin}&destination={destination}&date={date}";
+            var url = $"http://localhost:5000/api/flight?origin={origin}&destination={destination}&date={date}&adults={adults}";
             return await _httpClient.GetFromJsonAsync<List<FlightData>>(url) ?? new();
         }
 
