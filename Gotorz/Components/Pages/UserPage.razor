@@ -11,7 +11,9 @@
 {
     <p>Welcome @authState.UserEmail</p>
     <button @onclick=MessageInboxRedirect>Message Inbox</button>
+    <button @onclick=ChangePasswordRedirect>Change password</button>
     <button @onclick="authState.Logout">Logout</button>
+
 }
 else
 {
@@ -57,4 +59,10 @@ else if (authState.IsLoggedIn && authState.UserRole == "Admin")
     {
         navigation.NavigateTo("/messageInbox");
     }
+    private void ChangePasswordRedirect()
+    {
+        navigation.NavigateTo("/change-password");
+    }
+
+    
 }

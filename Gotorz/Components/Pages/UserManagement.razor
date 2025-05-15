@@ -3,7 +3,9 @@
 @using Gotorz.Services
 @using Gotorz.Data
 @using Gotorz.Models
+@using Microsoft.AspNetCore.Identity
 @using Microsoft.EntityFrameworkCore
+@using System.Security.Cryptography
 @inject ApplicationDbContext db
 @inject AuthStateService authState
 @inject NavigationManager navigation
@@ -39,6 +41,7 @@ else
                     <td><input @bind="user.Role" /></td>
                     <td>
                         <button class="btn btn-primary" @onclick="() => UpdateUser(user)">Save</button>
+                        <button class="btn btn-warning" @onclick="() => ResetPassword(user)">Reset Password</button>
                     </td>
                 </tr>
             }
@@ -98,6 +101,56 @@ else
         }
 
     }
+
+    private async Task ResetPassword(RegisterModel user)
+    {
+        //Generate new random password for the user
+        string newPassword = GenerateRandomPassword(10);
+
+        //Hash the new password
+        var hasher = new PasswordHasher<RegisterModel>();
+        user.HashedPassword = hasher.HashPassword(user, newPassword);
+
+        //Update the user with the new password in the database
+        db.Users.Update(user);
+
+        //Send message to user with new temporary password
+        var msg = new Message
+            {
+                SenderEmail = authState.UserEmail,
+                RecipientEmail = user.Email,
+                Content = $"Your password has been reset by an admin, your new temporary password is: {newPassword}",
+                TimeSent = DateTime.UtcNow
+            };
+
+        //Save message to database and save changes to the database
+        db.Messages.Add(msg);
+        await db.SaveChangesAsync();
+    }
+
+    //Function to generate a new random secure password
+    private string GenerateRandomPassword(int length)
+    {
+        //define valid characters for the password
+        const string valid = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+        // the field to hold the new password
+        var res = new char[length];
+        //Create the random password
+        using var rng = RandomNumberGenerator.Create();
+        //An array of bytes for each character in the password
+        var bytes = new byte[length];
+        //Creates random values from 0-255 for each of the bytes
+        rng.GetBytes(bytes);
+
+        //Loop that assigns each byte to a character from the valid characters defined earlier
+        for(int i = 0; i < length; i++)
+        {
+            res[i] = valid[bytes[i] % valid.Length];
+        }
+        //return the new password as a string
+        return new string(res);
+    }
+
     public void Dispose()
     {
         authState.OnChange -= StateHasChanged;
