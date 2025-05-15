@@ -1,0 +1,72 @@
+﻿@page "/employeePanel/send-message"
+@rendermode InteractiveServer
+@using Gotorz.Data
+@using Gotorz.Models
+@using Gotorz.Services
+@using Microsoft.EntityFrameworkCore
+@inject ApplicationDbContext db
+@inject AuthStateService authState
+@inject NavigationManager navigation
+
+<h3>Send message to user</h3>
+
+@if(authState.UserRole != "Employee" && authState.UserRole != "Admin")
+{
+    <p>Access denied</p>
+}
+else
+{
+    <div>
+        <label>Select User:</label>
+        <select @bind="RecipientEmail">
+            <option disabled selected value="">-- Select a user --</option>
+            @foreach (var user in users)
+            {
+                <option value="@user.Email">@user.Email</option>
+            }
+        </select>
+
+        <label>Message:</label>
+        <textarea @bind="MessageContent"></textarea>
+
+        <button class="btn btn-primary" @onclick="SendAMessage">Send</button>
+        <p style="color:green">@statusMessage</p>
+    </div>
+}
+
+<button @onclick=MessageInboxRedirect>Inbox</button>
+
+@code {
+    private List<RegisterModel> users = new();
+    private string RecipientEmail;
+    private string MessageContent;
+    private string statusMessage = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        users = await db.Users.ToListAsync();
+    }
+
+    private async Task SendAMessage()
+    {
+        if(!string.IsNullOrWhiteSpace(RecipientEmail) && !string.IsNullOrWhiteSpace(MessageContent))
+        {
+            var message = new Message
+                {
+                    SenderEmail = authState.UserEmail,
+                    RecipientEmail = RecipientEmail,
+                    Content = MessageContent
+                };
+            db.Messages.Add(message);
+            await db.SaveChangesAsync();
+            statusMessage = "Message sent!";
+            MessageContent = "";
+        }
+    }
+
+    private void MessageInboxRedirect()
+    {
+        navigation.NavigateTo("/messageInbox");
+    }
+
+}

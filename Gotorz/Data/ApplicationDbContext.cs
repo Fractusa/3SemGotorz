@@ -8,6 +8,7 @@ namespace Gotorz.Data
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
 
         public DbSet<RegisterModel> Users { get; set; }
+        public DbSet<Message> Messages { get; set; }
 
     }
 }

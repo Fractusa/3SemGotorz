@@ -1,0 +1,68 @@
+﻿@page "/messageInbox"
+@rendermode InteractiveServer
+@using Gotorz.Data
+@using Gotorz.Models
+@using Gotorz.Services
+@using Microsoft.EntityFrameworkCore
+@inject AuthStateService authState
+@inject ApplicationDbContext db
+@inject NavigationManager navigation
+
+<h3>Inbox</h3>
+
+@if (!authState.IsLoggedIn)
+{
+    <p>Access denied</p>
+}
+else if (messages == null)
+{
+    <p>Loading messages</p>
+}
+else if (messages.Count == 0)
+{
+    <p>No messages received</p>
+}
+else
+{
+    <ul>
+        @foreach (var message in messages)
+        {
+            <li>
+                <strong>From:</strong> @message.SenderEmail<br />
+                <strong>Sent:</strong> @message.TimeSent.ToLocalTime()<br />
+                <p>@message.Content</p>
+                <hr />
+            </li>
+        }
+    </ul>
+}
+@if(authState.UserRole == "Admin" || authState.UserRole == "Employee")
+{
+    <button @onclick=SendMessageRedirect>Send a message</button>
+}
+
+<button @onclick=UserPageRedirect>UserPage</button>
+@code {
+
+    private List<Message>? messages;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (authState.IsLoggedIn)
+        {
+            messages = await db.Messages
+                .Where(m => m.RecipientEmail == authState.UserEmail)
+                .OrderByDescending(m => m.TimeSent)
+                .ToListAsync();
+        }
+    }
+
+    private void SendMessageRedirect()
+    {
+        navigation.NavigateTo("/employeePanel/send-message");
+    }
+    private void UserPageRedirect()
+    {
+        navigation.NavigateTo("/userPage");
+    }
+}

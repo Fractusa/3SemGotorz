@@ -1,4 +1,4 @@
-﻿@page "/UserPage"
+﻿@page "/userPage"
 @rendermode InteractiveServer
 @using Services
 @inject AuthStateService authState
@@ -10,6 +10,7 @@
 @if (authState.IsLoggedIn)
 {
     <p>Welcome @authState.UserEmail</p>
+    <button @onclick=MessageInboxRedirect>Message Inbox</button>
     <button @onclick="authState.Logout">Logout</button>
 }
 else
@@ -51,5 +52,9 @@ else if (authState.IsLoggedIn && authState.UserRole == "Admin")
     private void EmployeePanelRedirect()
     {
         navigation.NavigateTo("/employee");
+    }
+    private void MessageInboxRedirect()
+    {
+        navigation.NavigateTo("/messageInbox");
     }
 }
