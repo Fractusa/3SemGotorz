@@ -1,0 +1,78 @@
+﻿@page "/chat"
+@using Microsoft.AspNetCore.SignalR.Client
+@using Gotorz.Models
+@inject IJSRuntime JS
+@using Microsoft.AspNetCore.Components
+@using Microsoft.AspNetCore.Components.Web
+@inject NavigationManager NavigationManager
+
+<h3>Chat</h3>
+
+@if (!connected)
+{
+    <p><em>Connecting…</em></p>
+}
+else
+{
+    <div class="border p-2 mb-2" style="max-height:300px; overflow:auto;">
+        @foreach (var m in messages)
+        {
+            <div class="mb-1">
+                <strong>@m.SenderName</strong>
+                <small class="text-muted">[@m.SentAt.ToLocalTime():HH:mm:ss]</small>
+                <div>@m.Text</div>
+            </div>
+        }
+    </div>
+
+    <div class="input-group">
+        <input class="form-control"
+               @bind="newMessage"
+               @onkeypress="HandleKeyPress"
+               placeholder="Type a message…" />
+        <button class="btn btn-primary" @onclick="Send">Send</button>
+    </div>
+}
+
+@code {
+    private bool connected;
+    private string newMessage = "";
+    private string userName = $"User{new Random().Next(1000, 9999)}";
+    private List<ChatMessage> messages = new();
+    private DotNetObjectReference<Chat>? dotnetRef;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+
+        dotnetRef = DotNetObjectReference.Create(this);
+        await JS.InvokeVoidAsync("chatClient.start", userName, dotnetRef);
+
+        connected = true;
+        StateHasChanged();
+    }
+
+    [JSInvokable]
+    public Task ReceiveMessageFromHub(ChatMessage msg)
+    {
+        messages.Add(msg);
+        StateHasChanged();
+        return Task.CompletedTask;
+    }
+
+    private async Task Send()
+    {
+        if (string.IsNullOrWhiteSpace(newMessage)) return;
+        await JS.InvokeVoidAsync("chatClient.send", userName, newMessage);
+        newMessage = "";
+    }
+
+    private Task HandleKeyPress(KeyboardEventArgs e)
+        => e.Key == "Enter" ? Send() : Task.CompletedTask;
+
+    public ValueTask DisposeAsync()
+    {
+        dotnetRef?.Dispose();
+        return default;
+    }
+}
