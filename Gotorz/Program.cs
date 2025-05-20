@@ -7,15 +7,15 @@ using Microsoft.EntityFrameworkCore;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-//builder.Services.AddRazorComponents()
-//    .AddInteractiveServerComponents();
+builder.Services.AddRazorComponents()
+    .AddInteractiveServerComponents();
 builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddScoped<AuthStateService>();
 
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
-builder.Services.AddServerSideBlazor();
+builder.Services.AddServerSideBlazor(); ;
 
 var app = builder.Build();
 
@@ -28,19 +28,18 @@ if (!app.Environment.IsDevelopment())
 }
 
 
-//app.UseAntiforgery();
 app.UseHttpsRedirection();
 app.UseStaticFiles();
+
 
 app.UseRouting();
 app.MapRazorPages();
 app.MapHub<ChatHub>("/chathub");
 app.MapControllers();
 app.MapBlazorHub();
+app.UseAntiforgery();
+
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
-
-app.MapFallbackToPage("/_Host");
-
-//app.Run();
+app.Run();

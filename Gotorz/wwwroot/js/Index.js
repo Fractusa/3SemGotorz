@@ -3,8 +3,7 @@ using Gotorz.Models;
 using System;
 using System.Threading.Tasks;
 
-namespace Gotorz
-{
+namespace Gotorz {
     public class ChatHub : Hub
     {
         public async Task SendMessage(string name, string text)
@@ -12,15 +11,13 @@ namespace Gotorz
             var message = new ChatMessage
             {
                 SenderName = name,
-                Text = text,
-                SentAt = DateTimeOffset.UtcNow
+                    Text = text,
+                    SentAt = DateTimeOffset.UtcNow
             };
 
             await Clients
-            .All
-            .SendAsync("ReceiveMessage", message);
+                .All
+                .SendAsync("ReceiveMessage", message);
         }
     }
 }
-
-

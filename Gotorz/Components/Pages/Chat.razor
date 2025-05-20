@@ -1,78 +1,92 @@
 ﻿@page "/chat"
 @using Microsoft.AspNetCore.SignalR.Client
+@using Microsoft.AspNetCore.Components.Web   @* for KeyboardEventArgs *@
 @using Gotorz.Models
-@inject IJSRuntime JS
-@using Microsoft.AspNetCore.Components
-@using Microsoft.AspNetCore.Components.Web
 @inject NavigationManager NavigationManager
 
-<h3>Chat</h3>
+<h3>Live Chat</h3>
 
-@if (!connected)
+@if (!IsConnected)
 {
     <p><em>Connecting…</em></p>
 }
 else
 {
-    <div class="border p-2 mb-2" style="max-height:300px; overflow:auto;">
-        @foreach (var m in messages)
+    <div class="chat-window" style="border:1px solid #ccc; padding:1rem; height:300px; overflow-y:auto;">
+        @foreach (var msg in messages)
         {
-            <div class="mb-1">
-                <strong>@m.SenderName</strong>
-                <small class="text-muted">[@m.SentAt.ToLocalTime():HH:mm:ss]</small>
-                <div>@m.Text</div>
+            <div class="mb-2">
+                <strong>@msg.SenderName</strong>
+                <span class="text-muted" style="font-size:0.8em;">
+                    [@msg.SentAt.ToLocalTime():HH:mm:ss]
+                </span>
+                <div>@msg.Text</div>
             </div>
         }
     </div>
 
-    <div class="input-group">
+    <div class="input-group mt-2">
         <input class="form-control"
-               @bind="newMessage"
-               @onkeypress="HandleKeyPress"
-               placeholder="Type a message…" />
+               @bind="currentMessage"
+               placeholder="Type a message…"
+               @onkeydown="HandleKey" />
         <button class="btn btn-primary" @onclick="Send">Send</button>
     </div>
 }
 
 @code {
-    private bool connected;
-    private string newMessage = "";
-    private string userName = $"User{new Random().Next(1000, 9999)}";
+    private HubConnection hubConnection;
     private List<ChatMessage> messages = new();
-    private DotNetObjectReference<Chat>? dotnetRef;
+    private string currentMessage;
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
+    // Temporary; swap out for actual user identity later
+    private string UserName { get; } = $"User{new Random().Next(1000, 9999)}";
+
+    private bool IsConnected =>
+        hubConnection is not null &&
+        hubConnection.State == HubConnectionState.Connected;
+
+    protected override async Task OnInitializedAsync()
     {
-        if (!firstRender) return;
+        // 1) Build the connection to the exact same path you mapped in Program.cs:
+        hubConnection = new HubConnectionBuilder()
+            .WithUrl(NavigationManager.ToAbsoluteUri("/chathub"))
+            .WithAutomaticReconnect()
+            .Build();
 
-        dotnetRef = DotNetObjectReference.Create(this);
-        await JS.InvokeVoidAsync("chatClient.start", userName, dotnetRef);
+        // 2) Register a handler for messages the server broadcasts:
+        hubConnection.On<ChatMessage>("ReceiveMessage", (message) =>
+        {
+            messages.Add(message);
+            // Tell Blazor to re-render
+            InvokeAsync(StateHasChanged);
+        });
 
-        connected = true;
-        StateHasChanged();
-    }
-
-    [JSInvokable]
-    public Task ReceiveMessageFromHub(ChatMessage msg)
-    {
-        messages.Add(msg);
-        StateHasChanged();
-        return Task.CompletedTask;
+        // 3) Actually start the connection:
+        try
+        {
+            await hubConnection.StartAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"SignalR connection failed: {ex}");
+        }
     }
 
     private async Task Send()
     {
-        if (string.IsNullOrWhiteSpace(newMessage)) return;
-        await JS.InvokeVoidAsync("chatClient.send", userName, newMessage);
-        newMessage = "";
+        if (!string.IsNullOrWhiteSpace(currentMessage))
+        {
+            await hubConnection.SendAsync("SendMessage", UserName, currentMessage);
+            currentMessage = "";
+        }
     }
 
-    private Task HandleKeyPress(KeyboardEventArgs e)
-        => e.Key == "Enter" ? Send() : Task.CompletedTask;
-
-    public ValueTask DisposeAsync()
+    private async Task HandleKey(KeyboardEventArgs e)
     {
-        dotnetRef?.Dispose();
-        return default;
+        if (e.Key == "Enter")
+        {
+            await Send();
+        }
     }
 }
