@@ -45,46 +45,106 @@
 
 <p><strong>Debug:</strong> @searchModel.Origin → @searchModel.Destination</p>
 
-@if (DepartureFlights.Any())
+<h4>Departure Flights</h4>
+<InputRadioGroup @bind-Value="selectedDepartureFlightId">
+    @foreach (var flight in DepartureFlights)
+    {
+        <div class="form-check">
+            <InputRadio class="form-check-input" Value="@flight.FlightId" />
+            <label class="form-check-label">
+                @flight.DepartureAirport → @flight.ArrivalAirport - @flight.Price DKK
+            </label>
+        </div>
+    }
+</InputRadioGroup>
+
+<h4>Return Flights</h4>
+<InputRadioGroup @bind-Value="selectedReturnFlightId">
+    @foreach (var flight in ReturnFlights)
+    {
+        <div class="form-check">
+            <InputRadio class="form-check-input" Value="@flight.FlightId" />
+            <label class="form-check-label">
+                @flight.DepartureAirport → @flight.ArrivalAirport - @flight.Price DKK
+            </label>
+        </div>
+    }
+</InputRadioGroup>
+
+<h4>Hotels</h4>
+<InputRadioGroup @bind-Value="selectedHotelId">
+    @foreach (var hotel in Hotels)
+    {
+        <div class="form-check">
+            <InputRadio class="form-check-input" Value="@hotel.HotelId" />
+            <label class="form-check-label">
+                @hotel.HotelName - @hotel.Price DKK
+            </label>
+        </div>
+    }
+</InputRadioGroup>
+
+@if (Package.DepartureFlight != null && Package.ReturnFlight != null && Package.Hotel != null)
 {
-    <h4>Departure Flights</h4>
+    <hr />
+    <h4>Your Travel Package</h4>
     <ul>
-        @foreach (var flight in DepartureFlights)
-        {
-            <li>@flight.DepartureAirport → @flight.ArrivalAirport - @flight.DepartureTime.ToShortTimeString() - @flight.Price DKK</li>
-        }
+        <li>Departure Flight: @Package.DepartureFlight.DepartureAirport → @Package.DepartureFlight.ArrivalAirport - @Package.DepartureFlight.Price DKK</li>
+        <li>Return Flight: @Package.ReturnFlight.DepartureAirport → @Package.ReturnFlight.ArrivalAirport - @Package.ReturnFlight.Price DKK</li>
+        <li>Hotel: @Package.Hotel.HotelName - @Package.Hotel.Price DKK</li>
     </ul>
+    <p><strong>Total Price:</strong> @Package.TotalPrice DKK</p>
+
+    <button class="btn btn-success" @onclick="CreateTravelPackage">Create Package</button>
 }
-@if (ReturnFlights.Any())
+
+@if (travelPackages.Any())
 {
-    <h4>Return Flights</h4>
+    <hr />
+    <h4>Booked Packages</h4>
     <ul>
-        @foreach (var flight in ReturnFlights)
+        @foreach (var p in travelPackages)
         {
-            <li>@flight.DepartureAirport → @flight.ArrivalAirport - @flight.DepartureTime.ToShortTimeString() - @flight.Price DKK</li>
-        }
-    </ul>
-}
-@if (Hotels.Any())
-{
-    <h4>Hotels</h4>
-    <ul>
-        @foreach (var hotel in Hotels)
-        {
-            <li>@hotel.HotelName - @hotel.Price DKK (from @hotel.CheckIn to @hotel.CheckOut)</li>
+            <li>
+                @p.DepartureFlight.DepartureAirport → @p.DepartureFlight.ArrivalAirport +
+                Return: @p.ReturnFlight.DepartureAirport → @p.ReturnFlight.ArrivalAirport +
+                Hotel: @p.Hotel.HotelName - Total: @p.TotalPrice DKK
+            </li>
         }
     </ul>
 }
 
+
 @code {
-    private SearchModel searchModel = new()
+    private string selectedDepartureFlightId;
+    private string selectedReturnFlightId;
+    private string selectedHotelId;
+
+    private List<TravelPackage> travelPackages = new();
+
+    private TravelPackage Package => new()
+    {
+        DepartureFlight = DepartureFlights.FirstOrDefault(f => f.FlightId == selectedDepartureFlightId),
+        ReturnFlight = ReturnFlights.FirstOrDefault(f => f.FlightId == selectedReturnFlightId),
+        Hotel = Hotels.FirstOrDefault(h => h.HotelId == selectedHotelId)
+    };
+
+    private void CreateTravelPackage()
+    {
+        if (Package.DepartureFlight != null && Package.ReturnFlight != null && Package.Hotel != null)
         {
-            Origin = "CPH",
-            Destination = "LON",
-            DepartureDate = DateTime.Today.AddDays(10),
-            ReturnDate = DateTime.Today.AddDays(17),
-            Adults = 1
-        };
+            travelPackages.Add(Package);
+        }
+    }
+
+    private SearchModel searchModel = new()
+    {
+        Origin = "CPH",
+        Destination = "LON",
+        DepartureDate = DateTime.Today.AddDays(10),
+        ReturnDate = DateTime.Today.AddDays(17),
+        Adults = 1
+    };
 
     private List<FlightData> DepartureFlights = new();
     private List<FlightData> ReturnFlights = new();
