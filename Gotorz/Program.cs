@@ -16,6 +16,7 @@ builder.Services.AddScoped<AuthStateService>();
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor(); ;
+builder.Services.AddSignalR();
 
 var app = builder.Build();
 

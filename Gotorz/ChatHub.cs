@@ -16,9 +16,11 @@ namespace Gotorz
                 SentAt = DateTimeOffset.UtcNow
             };
 
-            await Clients
-            .All
-            .SendAsync("ReceiveMessage", message);
+            await Clients.All.SendAsync(
+                "ReceiveMessage", 
+                message.SenderName,
+                message.SentAt,
+                message.Text);
         }
     }
 }

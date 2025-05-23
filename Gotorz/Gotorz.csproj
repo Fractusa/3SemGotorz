@@ -7,9 +7,9 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Folder Include="Components\Shared\" />
     <Folder Include="Controllers\" />
     <Folder Include="Migrations\" />
-    <Folder Include="Views\" />
   </ItemGroup>
 
   <ItemGroup>

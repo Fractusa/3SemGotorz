@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
-namespace ExploreCalifornia.Pages
+namespace Gotorz.Views.Home
 {
     public class IndexModel : PageModel
     {
