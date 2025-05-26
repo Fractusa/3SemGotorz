@@ -1,0 +1,109 @@
+﻿@page "/employee/dashboard"
+@rendermode InteractiveServer
+@using Gotorz.Data
+@using Gotorz.Services
+@using Gotorz.Models
+@using Microsoft.EntityFrameworkCore
+@inject AuthStateService authState
+@inject NavigationManager navigation
+@inject ApplicationDbContext db
+
+<h3>Employee Dashboard</h3>
+
+@if (!authState.IsLoggedIn || (authState.UserRole != "Employee" && authState.UserRole != "Admin" ))
+{
+    <p>Redirecting</p>
+}
+else
+{
+    <div class="mb-3">
+        <label>Search by Email:</label>
+        <input type="text" @bind="searchEmail" placeholder="Enter user email" class="form-control" />
+        <button class="btn btn-primary mt-2" @onclick="SearchUserData">Search</button>
+    </div>
+
+
+    @if (userOrders != null)
+    {
+        <h4>Orders for @searchEmail</h4>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Order ID</th>
+                    <th>Date</th>
+                    <th>Status</th>
+                    <th>Price</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var order in userOrders)
+                {
+                    <tr>
+                        <td>@order.Id</td>
+                        <td>@order.OrderDate.ToShortDateString()</td>
+                        <td>@order.Status</td>
+                        <td>@order.Price.ToString("C")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+
+    @if (userMessages != null)
+    {
+        <h4>Messages for @searchEmail</h4>
+        <ul class="list-group">
+            @foreach (var msg in userMessages)
+            {
+                <li class="list-group-item">
+                    <strong>@msg.TimeSent.ToShortDateString()</strong>: @msg.Content
+                </li>
+            }
+        </ul>
+    }
+
+}
+
+
+
+
+@code {
+    private List<RegisterModel> users;
+    private string selectedUserEmail;
+    private RegisterModel selectedUser;
+    private List<Order> userOrders = new();
+    private List<Message> userMessages = new();
+    private string searchEmail;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (authState.IsLoggedIn && (authState.UserRole == "Employee" || authState.UserRole == "Admin"))
+        {
+            users = await db.Users.ToListAsync();
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && (!authState.IsLoggedIn || (authState.UserRole != "Employee" && authState.UserRole != "Admin")))
+        {
+            navigation.NavigateTo("/login", true);
+        }
+    }
+
+    private async Task SearchUserData()
+    {
+        if (!string.IsNullOrWhiteSpace(searchEmail))
+        {
+            userOrders = await db.Orders
+            .Where(o => o.CustomerEmail == searchEmail)
+            .ToListAsync();
+
+            userMessages = await db.Messages
+            .Where(m => m.RecipientEmail == searchEmail)
+            .ToListAsync();
+        }
+    }
+
+
+}

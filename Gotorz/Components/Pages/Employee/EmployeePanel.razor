@@ -18,6 +18,8 @@ else
     <p>Welcome to the Employee panel, @authState.UserEmail</p>
 
     //Employee information/functionality goes here
+
+    <button @onclick=DashboardRedirect>Dashboard</button>
 }
 
 
@@ -51,5 +53,10 @@ else
     public void Dispose()
     {
         authState.OnChange -= StateHasChanged;
+    }
+
+    private void DashboardRedirect()
+    {
+        navigation.NavigateTo("/employee/dashboard");
     }
 }

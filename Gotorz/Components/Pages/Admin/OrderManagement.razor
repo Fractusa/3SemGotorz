@@ -83,6 +83,8 @@ else
 
     private void Filter()
     {
+        //applies the given filter inputs to the search on the order table in the database and creates a list with the orders that
+        //matches the given search inputs
         filteredOrders = allOrders
         .Where(o =>
         (!filterFrom.HasValue || o.OrderDate >= filterFrom.Value) &&
