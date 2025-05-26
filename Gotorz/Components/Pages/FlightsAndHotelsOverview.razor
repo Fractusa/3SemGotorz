@@ -3,6 +3,7 @@
 @using System.ComponentModel.DataAnnotations
 @using Microsoft.AspNetCore.Components.Forms
 @rendermode InteractiveServer
+@inject Gotorz.Data.ApplicationDbContext dbContext
 
 @page "/flightsandhotels"
 @inject TravelAPIService travelAPI
@@ -129,10 +130,12 @@
         Hotel = Hotels.FirstOrDefault(h => h.HotelId == selectedHotelId)
     };
 
-    private void CreateTravelPackage()
+    private async Task CreateTravelPackage()
     {
         if (Package.DepartureFlight != null && Package.ReturnFlight != null && Package.Hotel != null)
         {
+            dbContext.TravelPackages.Add(Package);
+            await dbContext.SaveChangesAsync();
             travelPackages.Add(Package);
         }
     }
