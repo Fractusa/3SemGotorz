@@ -9,6 +9,7 @@ namespace Gotorz.Data
 
         public DbSet<RegisterModel> Users { get; set; }
         public DbSet<Message> Messages { get; set; }
+        public DbSet<Order> Orders { get; set; }
 
     }
 }

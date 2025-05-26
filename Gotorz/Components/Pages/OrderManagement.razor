@@ -1,0 +1,110 @@
+﻿@page "/admin/order-management"
+@rendermode InteractiveServer
+@using Gotorz.Data
+@using Gotorz.Services
+@using Gotorz.Models
+@using Microsoft.EntityFrameworkCore
+@inject AuthStateService authState
+@inject NavigationManager navigation
+@inject ApplicationDbContext db
+
+<h3>Order Management</h3>
+
+@if(!authState.IsLoggedIn! || authState.UserRole != "Admin")
+{
+    <p>Redirecting</p>
+}
+else
+{
+    <div class="filters mb-3">
+        <label>Date from: <input type="date" @bind="filterFrom" /></label>
+        <label>Date to: <input type="date" @bind="filterTo" /></label>
+        <label>User Email: <input type="text" @bind="filterEmail" placeholder="Enter user email"/></label>
+        <label>Status:
+            <select @bind="filterStatus">
+                <option value="">All</option>
+                <option>Pending</option>
+                <option>Completed</option>
+                <option>Cancelled</option>
+            </select>
+        </label>
+        <button class="btn btn-primary" @onclick="Filter">Apply</button>
+    </div>
+}
+@if(filteredOrders == null)
+{
+    <p>Loading</p>
+}
+else
+{
+    //need to change destination to package when package is implemented in database
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Order ID</th>
+                <th>User Email</th>
+                <th>Destination</th>
+                <th>Date</th>
+                <th>Status</th>
+                <th>Price</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var order in filteredOrders)
+            {
+                <tr>
+                    <td>@order.Id</td>
+                    <td>@order.CustomerEmail</td>
+                    <td>@order.Destination</td>
+                    <td>@order.OrderDate.ToShortDateString()</td>
+                    <td>@order.Status</td>
+                    <td>@order.Price.ToString("C")</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+
+@code {
+    private List<Order> allOrders;
+    private List<Order> filteredOrders;
+
+    private string filterEmail = string.Empty;
+    private DateTime? filterFrom;
+    private DateTime? filterTo;
+    private string filterStatus = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        allOrders = await db.Orders.ToListAsync();
+        filteredOrders = allOrders;
+    }
+
+    private void Filter()
+    {
+        filteredOrders = allOrders
+        .Where(o =>
+        (!filterFrom.HasValue || o.OrderDate >= filterFrom.Value) &&
+        (!filterTo.HasValue || o.OrderDate <= filterTo.Value) &&
+        (string.IsNullOrWhiteSpace(filterStatus) || o.Status == filterStatus) &&
+        (string.IsNullOrWhiteSpace(filterEmail) || o.CustomerEmail.Contains(filterEmail, StringComparison.OrdinalIgnoreCase)))
+        .ToList();
+    }
+    //Checks whether the user should be redirected to the login page or not, after the page is rendered.
+    private bool redirectChecked = false;
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!redirectChecked)
+        {
+            redirectChecked = true;
+
+            //If the user isn't logged in or does not have the required role, redirect the user to the login page.
+            if (!authState.IsLoggedIn || (authState.UserRole != "Admin"))
+            {
+                navigation.NavigateTo("/login", true);
+            }
+        }
+    }
+
+}

@@ -1,0 +1,84 @@
+﻿@page "/order-history"
+@rendermode InteractiveServer
+@using Gotorz.Data
+@using Gotorz.Services
+@using Gotorz.Models
+@using Microsoft.EntityFrameworkCore
+
+@inject AuthStateService authState
+@inject ApplicationDbContext db
+@inject NavigationManager navigation
+
+
+
+
+<h3>Your order history</h3>
+
+
+@if (!authState.IsLoggedIn)
+{
+    <p>Redirecting to login</p>
+}
+else if(orders == null)
+{
+    <p>Loading your orders</p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Destination</th>
+                <th>Price</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var order in orders)
+            {
+                <tr>
+                    <td>@order.OrderDate.ToShortDateString()</td>
+                    <td>@order.Destination</td>
+                    <td>@order.Price.ToString("C")</td>
+                    <td>@order.Status</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+
+
+@code {
+    private List<Order>? orders;
+
+
+    //Checks whether the user should be redirected to the login page or not, after the page is rendered.
+    private bool redirectChecked = false;
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!redirectChecked)
+        {
+            redirectChecked = true;
+
+            //If the user isn't logged in or does not have the required role, redirect the user to the login page.
+            if (!authState.IsLoggedIn)
+            {
+                navigation.NavigateTo("/login", true);
+            }
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var email = authState.UserEmail;
+
+        orders = await db.Orders
+            .Where(b => b.CustomerEmail == email)
+            .OrderByDescending(b => b.OrderDate)
+            .ToListAsync();
+    }
+
+
+}

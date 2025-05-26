@@ -2,8 +2,17 @@ using Gotorz.Components;
 using Gotorz.Data;
 using Gotorz.Services;
 using Microsoft.EntityFrameworkCore;
+using System.Globalization;
+
+
 
 var builder = WebApplication.CreateBuilder(args);
+
+
+//Changes the dateTime format to a proper format
+var culture = new CultureInfo("da-DK");
+CultureInfo.CurrentCulture = culture;
+CultureInfo.CurrentUICulture = culture;
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
