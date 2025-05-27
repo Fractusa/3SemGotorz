@@ -18,12 +18,12 @@ namespace Gotorz.Models
         public DateTime ReturnDate { get; set; }
         public int Adults { get; set; }
 
-        public decimal DeparturePriceAtBooking { get; set; }
-        public decimal ReturnPriceAtBooking { get; set; }
-        public decimal HotelPriceAtBooking { get; set; }
-        public DateTime BookingDate { get; set; }
+        public decimal DeparturePriceAtCreation { get; set; }
+        public decimal ReturnPriceAtCreation { get; set; }
+        public decimal HotelPriceAtCreation { get; set; }
+        public DateTime CreationDate { get; set; }
 
         [NotMapped]
-        public decimal TotalPrice => DeparturePriceAtBooking + ReturnPriceAtBooking + HotelPriceAtBooking;
+        public decimal TotalPrice => DeparturePriceAtCreation + ReturnPriceAtCreation + HotelPriceAtCreation;
     }
 }

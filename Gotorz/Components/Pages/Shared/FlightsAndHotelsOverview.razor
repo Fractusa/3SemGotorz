@@ -106,7 +106,7 @@
         @foreach (var p in travelPackages)
         {
             <li>
-                Booking Date: @p.BookingDate.ToShortDateString() |
+                Creation Date: @p.CreationDate.ToShortDateString() |
                 From: @p.Origin → @p.Destination |
                 Depart: @p.DepartureDate.ToShortDateString() |
                 Return: @p.ReturnDate.ToShortDateString() |
@@ -170,15 +170,15 @@
                     DepartureFlightId = departureFlight.FlightId,
                     ReturnFlightId = returnFlight.FlightId,
                     HotelId = hotel.HotelId,
-                    DeparturePriceAtBooking = departureFlight.Price,
-                    ReturnPriceAtBooking = returnFlight.Price,
-                    HotelPriceAtBooking = hotel.Price,
+                    DeparturePriceAtCreation = departureFlight.Price,
+                    ReturnPriceAtCreation = returnFlight.Price,
+                    HotelPriceAtCreation = hotel.Price,
                     Origin = searchModel.Origin,
                     Destination = searchModel.Destination,
                     DepartureDate = searchModel.DepartureDate,
                     ReturnDate = searchModel.ReturnDate,
                     Adults = searchModel.Adults,
-                    BookingDate = DateTime.UtcNow
+                    CreationDate = DateTime.UtcNow
                 };
 
             db.TravelPackages.Add(newPackage);
