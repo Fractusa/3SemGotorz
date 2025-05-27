@@ -1,7 +1,9 @@
-﻿namespace Gotorz.Models
+﻿
+namespace Gotorz.Models
 {
     public class FlightData
     {
+
         public string FlightId { get; set; }
 
         public string DepartureAirport { get; set; }
