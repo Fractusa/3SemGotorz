@@ -1,4 +1,5 @@
-﻿namespace Gotorz.Models
+﻿
+namespace Gotorz.Models
 {
     public class HotelData
     {

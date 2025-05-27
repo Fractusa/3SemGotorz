@@ -1,9 +1,10 @@
 ﻿@using Gotorz.Models;
 @using Gotorz.Services;
+@using Gotorz.Data
 @using System.ComponentModel.DataAnnotations
 @using Microsoft.AspNetCore.Components.Forms
 @rendermode InteractiveServer
-@inject Gotorz.Data.ApplicationDbContext dbContext
+@inject ApplicationDbContext db
 
 @page "/flightsandhotels"
 @inject TravelAPIService travelAPI
@@ -134,8 +135,8 @@
     {
         if (Package.DepartureFlight != null && Package.ReturnFlight != null && Package.Hotel != null)
         {
-            dbContext.TravelPackages.Add(Package);
-            await dbContext.SaveChangesAsync();
+            db.TravelPackages.Add(Package);
+            await db.SaveChangesAsync();
             travelPackages.Add(Package);
         }
     }
