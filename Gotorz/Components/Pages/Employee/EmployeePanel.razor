@@ -20,6 +20,7 @@ else
     //Employee information/functionality goes here
 
     <button @onclick=DashboardRedirect>Dashboard</button>
+    <button @onclick=CreatePackageRedirect>Create Package</button>
 }
 
 
@@ -59,4 +60,9 @@ else
     {
         navigation.NavigateTo("/employee/dashboard");
     }
+    private void CreatePackageRedirect()
+    {
+        navigation.NavigateTo("/employee/create-travel-package");
+    }
+    
 }

@@ -1,0 +1,84 @@
+﻿@page "/employee/create-travel-package"
+@rendermode InteractiveServer
+@using Gotorz.Models
+@using Gotorz.Data
+@using Gotorz.Services
+@inject ApplicationDbContext db
+@inject AuthStateService authState
+@inject NavigationManager navigation
+
+<h3>Create Travel Package</h3>
+
+@if (!authState.IsLoggedIn || (authState.UserRole != "Employee" && authState.UserRole != "Admin"))
+{
+    <p>Redirecting</p>
+}
+else
+{
+    <EditForm Model="@package" OnValidSubmit="SavePackage">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div class="mb-2">
+            <label>Origin:</label>
+            <InputText class="form-control" @bind-Value="package.Origin" />
+        </div>
+
+        <div class="mb-2">
+            <label>Destination:</label>
+            <InputText class="form-control" @bind-Value="package.Destination" />
+        </div>
+
+        <div class="mb-2">
+            <label>Hotel Name:</label>
+            <InputText class="form-control" @bind-Value="package.HotelName" />
+        </div>
+
+        <div class="mb-2">
+            <label>Hotel ID:</label>
+            <InputText class="form-control" @bind-Value="package.HotelId" />
+        </div>
+        <div class="mb-2">
+            <label>Title:</label>
+            <InputText class="form-control" @bind-Value="package.Title" />
+        </div>
+        <div class="mb-2">
+            <label>Description:</label>
+            <InputText class="form-control" @bind-Value="package.Description" />
+        </div>
+
+        <button class="btn btn-success" type="submit">Save Package</button>
+    </EditForm>
+}
+
+
+@code {
+    private TravelPackage package = new();
+    private string? message;
+
+    private async Task SavePackage()
+    {
+        db.TravelPackages.Add(package);
+        await db.SaveChangesAsync();
+
+        message = "Travel package created succesfully";
+        package = new();
+    }
+
+    //Checks whether the user should be redirected to the login page or not, after the page is rendered.
+    private bool redirectChecked = false;
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!redirectChecked)
+        {
+            redirectChecked = true;
+
+            //If the user isn't logged in or does not have the required role, redirect the user to the login page.
+            if (!authState.IsLoggedIn || ((authState.UserRole != "Admin" && authState.UserRole != "Employee")))
+            {
+                navigation.NavigateTo("/login", true);
+            }
+        }
+    }
+
+}

@@ -10,6 +10,7 @@
 @if (authState.IsLoggedIn)
 {
     <p>Welcome @authState.UserEmail</p>
+    <button @onclick=SelectPackageRedirect>Select Travel Package</button>
     <button @onclick=MessageInboxRedirect>Message Inbox</button>
     <button @onclick=OrderHistoryRedirect>Order history</button>
     <button @onclick=ChangePasswordRedirect>Change password</button>
@@ -67,6 +68,10 @@ else if (authState.IsLoggedIn && authState.UserRole == "Admin")
     private void OrderHistoryRedirect()
     {
         navigation.NavigateTo("/order-history");
+    }
+    private void SelectPackageRedirect()
+    {
+        navigation.NavigateTo("/selectTravelPackage");
     }
 
     

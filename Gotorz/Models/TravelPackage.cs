@@ -8,10 +8,12 @@ namespace Gotorz.Models
         [Key]
         public int Id { get; set; }
 
-        public FlightData DepartureFlight { get; set; }
-        public FlightData ReturnFlight { get; set; }
-        public HotelData Hotel { get; set; }
+        public string Origin {  get; set; }
+        public string Destination { get; set; }
 
-        public decimal TotalPrice => DepartureFlight.Price + ReturnFlight.Price + Hotel.Price;
+        public string HotelName {  get; set; }
+        public string HotelId { get; set; }
+        public string Title { get; set; }
+        public string Description { get; set; }
     }
 }

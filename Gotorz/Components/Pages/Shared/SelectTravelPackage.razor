@@ -1,0 +1,147 @@
+﻿@page "/selectTravelPackage"
+@rendermode InteractiveServer
+@using Gotorz.Models
+@using Gotorz.Services
+@using Gotorz.Data
+@using Microsoft.EntityFrameworkCore
+@inject TravelAPIService travelAPI
+@inject ApplicationDbContext db
+@inject AuthStateService authState
+@inject NavigationManager navigation
+
+<h3>Select a travel package</h3>
+
+
+@if(packages == null)
+{
+    <p>Loading</p>
+}
+else
+{
+    <ul>
+        @foreach (var package in packages)
+        {
+            <li>
+                <strong>@package.Title</strong><br />
+                @package.Description<br />
+                From: @package.Origin → To: @package.Destination<br />
+                Hotel: @package.HotelName
+                <br />
+                <button class="btn btn-sm btn-primary mt-1" @onclick="() => OnPackageSelected(package)">Select</button>
+            </li>
+        }
+    </ul>
+}
+
+@if(selectedPackage != null)
+{
+    <hr />
+    <h4>Enter Travel Details</h4>
+
+    <EditForm Model="@selectionModel" OnValidSubmit="SearchOptions">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div class="form-group">
+            <label>Departure Date:</label>
+            <InputDate class="form-control" @bind-Value="selectionModel.DepartureDate" />
+        </div>
+
+        <div class="form-group">
+            <label>Return Date:</label>
+            <InputDate class="form-control" @bind-Value="selectionModel.ReturnDate" />
+        </div>
+
+        <div class="form-group">
+            <label>Adults:</label>
+            <InputNumber class="form-control" @bind-Value="selectionModel.Adults" />
+        </div>
+
+        <button class="btn btn-success">Search</button>
+    </EditForm>
+}
+@if(hotels?.Any() == true)
+{
+        <h4>Available Hotels</h4>
+    <ul>
+        @foreach (var h in hotels)
+        {
+            <li>@h.HotelName - @h.Price @h.Currency</li>
+        }
+    </ul>
+}
+
+
+
+
+
+
+
+
+
+
+
+
+@code {
+    private List<TravelPackage> packages;
+    private TravelPackage selectedPackage;
+
+    private TravelSelectionModel selectionModel = new();
+    private List<FlightData> availableFlights;
+    private List<HotelData> hotels;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        packages = await db.TravelPackages.ToListAsync();
+    }
+
+    private void OnPackageSelected(TravelPackage package)
+    {
+        selectedPackage = package;
+        selectionModel = new()
+            {
+                TravelPackageId = package.Id,
+                Adults = 1 // mby change later
+            };
+    }
+    private async Task SearchOptions()
+    {
+        if(selectedPackage == null)
+        {
+            var depDate = selectionModel.DepartureDate.ToString();
+            var retDate = selectionModel.ReturnDate.ToString();
+
+            availableFlights = await travelAPI.GetFlightsAsync(
+                selectedPackage.Origin,
+                selectedPackage.Destination,
+                depDate,
+                selectionModel.Adults);
+
+            hotels = await travelAPI.GetHotelsAsync(
+                selectedPackage.Destination,
+                depDate,
+                retDate,
+                selectionModel.Adults);
+        }
+    }
+
+
+
+
+    //Checks whether the user should be redirected to the login page or not, after the page is rendered.
+    private bool redirectChecked = false;
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!redirectChecked)
+        {
+            redirectChecked = true;
+
+            //If the user isn't logged in or does not have the required role, redirect the user to the login page.
+            if (!authState.IsLoggedIn || (authState.UserRole != "Admin"))
+            {
+                navigation.NavigateTo("/login", true);
+            }
+        }
+    }
+}
