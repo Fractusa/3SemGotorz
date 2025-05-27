@@ -1,6 +1,5 @@
-﻿@*/
-@using Gotorz.Models;
-@using Gotorz.Services;
+﻿@using Gotorz.Models
+@using Gotorz.Services
 @using Gotorz.Data
 @using System.ComponentModel.DataAnnotations
 @using Microsoft.AspNetCore.Components.Forms
@@ -12,7 +11,7 @@
 
 <h3 class="mb-3">Search Flights and Hotels</h3>
 
-<EditForm Model="@searchModel" OnValidSubmit="HandleSearch" FormName ="SearchForm">
+<EditForm Model="@searchModel" OnValidSubmit="HandleSearch">
     <DataAnnotationsValidator />
     <ValidationSummary />
 
@@ -45,8 +44,6 @@
 </EditForm>
 
 <hr />
-
-<p><strong>Debug:</strong> @searchModel.Origin → @searchModel.Destination</p>
 
 <h4>Departure Flights</h4>
 <InputRadioGroup @bind-Value="selectedDepartureFlightId">
@@ -87,17 +84,17 @@
     }
 </InputRadioGroup>
 
-@if (Package.DepartureFlight != null && Package.ReturnFlight != null && Package.Hotel != null)
+@if (!string.IsNullOrEmpty(selectedDepartureFlightId) &&
+   !string.IsNullOrEmpty(selectedReturnFlightId) &&
+   !string.IsNullOrEmpty(selectedHotelId))
 {
     <hr />
     <h4>Your Travel Package</h4>
-    <ul>
-        <li>Departure Flight: @Package.DepartureFlight.DepartureAirport → @Package.DepartureFlight.ArrivalAirport - @Package.DepartureFlight.Price DKK</li>
-        <li>Return Flight: @Package.ReturnFlight.DepartureAirport → @Package.ReturnFlight.ArrivalAirport - @Package.ReturnFlight.Price DKK</li>
-        <li>Hotel: @Package.Hotel.HotelName - @Package.Hotel.Price DKK</li>
-    </ul>
-    <p><strong>Total Price:</strong> @Package.TotalPrice DKK</p>
-
+    <p>
+        Selected Departure Flight ID: @selectedDepartureFlightId<br />
+        Selected Return Flight ID: @selectedReturnFlightId<br />
+        Selected Hotel ID: @selectedHotelId
+    </p>
     <button class="btn btn-success" @onclick="CreateTravelPackage">Create Package</button>
 }
 
@@ -109,14 +106,16 @@
         @foreach (var p in travelPackages)
         {
             <li>
-                @p.DepartureFlight.DepartureAirport → @p.DepartureFlight.ArrivalAirport +
-                Return: @p.ReturnFlight.DepartureAirport → @p.ReturnFlight.ArrivalAirport +
-                Hotel: @p.Hotel.HotelName - Total: @p.TotalPrice DKK
+                Booking Date: @p.BookingDate.ToShortDateString() |
+                From: @p.Origin → @p.Destination |
+                Depart: @p.DepartureDate.ToShortDateString() |
+                Return: @p.ReturnDate.ToShortDateString() |
+                Adults: @p.Adults |
+                Total: @p.TotalPrice DKK
             </li>
         }
     </ul>
 }
-
 
 @code {
     private string selectedDepartureFlightId;
@@ -125,31 +124,14 @@
 
     private List<TravelPackage> travelPackages = new();
 
-    private TravelPackage Package => new()
-    {
-        DepartureFlight = DepartureFlights.FirstOrDefault(f => f.FlightId == selectedDepartureFlightId),
-        ReturnFlight = ReturnFlights.FirstOrDefault(f => f.FlightId == selectedReturnFlightId),
-        Hotel = Hotels.FirstOrDefault(h => h.HotelId == selectedHotelId)
-    };
-
-    private async Task CreateTravelPackage()
-    {
-        if (Package.DepartureFlight != null && Package.ReturnFlight != null && Package.Hotel != null)
-        {
-            db.TravelPackages.Add(Package);
-            await db.SaveChangesAsync();
-            travelPackages.Add(Package);
-        }
-    }
-
     private SearchModel searchModel = new()
-    {
-        Origin = "CPH",
-        Destination = "LON",
-        DepartureDate = DateTime.Today.AddDays(10),
-        ReturnDate = DateTime.Today.AddDays(17),
-        Adults = 1
-    };
+        {
+            Origin = "CPH",
+            Destination = "LON",
+            DepartureDate = DateTime.Today.AddDays(10),
+            ReturnDate = DateTime.Today.AddDays(17),
+            Adults = 1
+        };
 
     private List<FlightData> DepartureFlights = new();
     private List<FlightData> ReturnFlights = new();
@@ -158,25 +140,52 @@
     private async Task HandleSearch()
     {
         DepartureFlights = await travelAPI.GetFlightsAsync(
-            searchModel.Origin,
-            searchModel.Destination,
-            searchModel.DepartureDate.ToString("yyyy-MM-dd"),
-            searchModel.Adults
-        );
+            searchModel.Origin, searchModel.Destination, searchModel.DepartureDate.ToString("yyyy-MM-dd"), searchModel.Adults);
 
         ReturnFlights = await travelAPI.GetFlightsAsync(
-            searchModel.Destination,
-            searchModel.Origin,
-            searchModel.ReturnDate.ToString("yyyy-MM-dd"),
-            searchModel.Adults
-        );
+            searchModel.Destination, searchModel.Origin, searchModel.ReturnDate.ToString("yyyy-MM-dd"), searchModel.Adults);
 
         Hotels = await travelAPI.GetHotelsAsync(
-            searchModel.Destination,
-            searchModel.DepartureDate.ToString("yyyy-MM-dd"),
-            searchModel.ReturnDate.ToString("yyyy-MM-dd"),
-            searchModel.Adults
-        );
+            searchModel.Destination, searchModel.DepartureDate.ToString("yyyy-MM-dd"),
+            searchModel.ReturnDate.ToString("yyyy-MM-dd"), searchModel.Adults);
+    }
+
+    private async Task CreateTravelPackage()
+    {
+        if (string.IsNullOrEmpty(selectedDepartureFlightId) ||
+            string.IsNullOrEmpty(selectedReturnFlightId) ||
+            string.IsNullOrEmpty(selectedHotelId))
+        {
+            return;
+        }
+
+        var departureFlight = DepartureFlights.FirstOrDefault(f => f.FlightId == selectedDepartureFlightId);
+        var returnFlight = ReturnFlights.FirstOrDefault(f => f.FlightId == selectedReturnFlightId);
+        var hotel = Hotels.FirstOrDefault(h => h.HotelId == selectedHotelId);
+
+        if (departureFlight != null && returnFlight != null && hotel != null)
+        {
+            var newPackage = new TravelPackage
+                {
+                    DepartureFlightId = departureFlight.FlightId,
+                    ReturnFlightId = returnFlight.FlightId,
+                    HotelId = hotel.HotelId,
+                    DeparturePriceAtBooking = departureFlight.Price,
+                    ReturnPriceAtBooking = returnFlight.Price,
+                    HotelPriceAtBooking = hotel.Price,
+                    Origin = searchModel.Origin,
+                    Destination = searchModel.Destination,
+                    DepartureDate = searchModel.DepartureDate,
+                    ReturnDate = searchModel.ReturnDate,
+                    Adults = searchModel.Adults,
+                    BookingDate = DateTime.UtcNow
+                };
+
+            db.TravelPackages.Add(newPackage);
+            await db.SaveChangesAsync();
+
+            travelPackages.Add(newPackage);
+        }
     }
 
     public class SearchModel
@@ -197,4 +206,3 @@
         public int Adults { get; set; }
     }
 }
-*@
