@@ -3,14 +3,39 @@
 @using Gotorz.Data
 @using System.ComponentModel.DataAnnotations
 @using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.EntityFrameworkCore
 @rendermode InteractiveServer
 @inject ApplicationDbContext db
 
 @page "/flightsandhotels"
 @inject TravelAPIService travelAPI
 
-<h3 class="mb-3">Search Flights and Hotels</h3>
 
+<h3>Select a Travel Package Template</h3>
+
+@if (templates.Count == 0)
+{
+    <p>Loading templates...</p>
+}
+else
+{
+    <InputRadioGroup @bind-Value="selectedTemplateId">
+        @foreach (var template in templates)
+        {
+            <div class="form-check mb-2">
+                <InputRadio class="form-check-input" Value="@template.Id" />
+                <label class="form-check-label">
+                    <strong>@template.Title</strong>: @template.Description<br />
+                    From @template.Origin to @template.Destination - Hotel: @template.Hotel?.HotelName
+                </label>
+            </div>
+        }
+    </InputRadioGroup>
+
+    <button class="btn btn-primary mb-4" @onclick="ApplyTemplate">Use Selected Template</button>
+}
+
+<h3 class="mb-3">Search Flights and Hotels</h3>
 <EditForm Model="@searchModel" OnValidSubmit="HandleSearch">
     <DataAnnotationsValidator />
     <ValidationSummary />
@@ -118,10 +143,13 @@
 }
 
 @code {
+
+    private int selectedTemplateId;
     private string selectedDepartureFlightId;
     private string selectedReturnFlightId;
     private string selectedHotelId;
 
+    private List<TravelPackageTemplate> templates = new();
     private List<TravelPackage> travelPackages = new();
 
     private SearchModel searchModel = new()
@@ -136,6 +164,30 @@
     private List<FlightData> DepartureFlights = new();
     private List<FlightData> ReturnFlights = new();
     private List<HotelData> Hotels = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        templates = await db.TravelPackageTemplates.ToListAsync();
+
+        foreach (var t in templates)
+        {
+            var hotels = await travelAPI.GetHotelsAsync(t.Destination, DateTime.Today.ToString("yyyy-MM-dd"), DateTime.Today.AddDays(7).ToString("yyyy-MM-dd"), 1);
+            t.Hotel = hotels.FirstOrDefault(h => h.HotelId == t.HotelId);
+        }
+    }
+    private void ApplyTemplate()
+    {
+        var selected = templates.FirstOrDefault(t => t.Id == selectedTemplateId);
+        if (selected != null)
+        {
+            searchModel.Origin = selected.Origin;
+            searchModel.Destination = selected.Destination;
+            selectedHotelId = selected.HotelId;
+            Hotels = new List<HotelData> { selected.Hotel }; // Replace hotel list with only this one
+        }
+    }
+
+
 
     private async Task HandleSearch()
     {
