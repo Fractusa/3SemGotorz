@@ -1,4 +1,4 @@
-﻿@* @page "/employee/create-travel-package"
+﻿@page "/employee/create-travel-package"
 @rendermode InteractiveServer
 @using Gotorz.Models
 @using Gotorz.Data
@@ -6,63 +6,77 @@
 @inject ApplicationDbContext db
 @inject AuthStateService authState
 @inject NavigationManager navigation
+@inject TravelAPIService travelAPI
 
 <h3>Create Travel Package</h3>
 
-@if (!authState.IsLoggedIn || (authState.UserRole != "Employee" && authState.UserRole != "Admin"))
+
+<EditForm Model="@templateModel" OnValidSubmit="HandleValidSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="mb-2">
+        <label>Origin (Airport Code):</label>
+        <InputText class="form-control" @bind-Value="templateModel.Origin" />
+    </div>
+
+    <div class="mb-2">
+        <label>Destination (Airport Code):</label>
+        <InputText class="form-control" @bind-Value="templateModel.Destination" />
+    </div>
+
+    <div class="mb-2">
+        <label>Title:</label>
+        <InputText class="form-control" @bind-Value="templateModel.Title" />
+    </div>
+
+    <div class="mb-2">
+        <label>Description:</label>
+        <InputTextArea class="form-control" @bind-Value="templateModel.Description" />
+    </div>
+
+    <div class="mb-2">
+        <label>Select a Hotel (must search first):</label>
+        <InputSelect class="form-control" @bind-Value="templateModel.HotelId">
+            <option value="">-- Select a Hotel --</option>
+            @foreach (var hotel in hotels)
+            {
+                <option value="@hotel.HotelId">@hotel.HotelName - @hotel.Price DKK</option>
+            }
+        </InputSelect>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Create Template</button>
+</EditForm>
+
+<button class="btn btn-secondary mt-3" @onclick="SearchHotels">Search Hotels</button>
+
+@if (showSuccessMessage)
 {
-    <p>Redirecting</p>
+    <div class="alert alert-success mt-2">Template saved successfully!</div>
 }
-else
-{
-    <EditForm Model="@package" OnValidSubmit="SavePackage">
-        <DataAnnotationsValidator />
-        <ValidationSummary />
-
-        <div class="mb-2">
-            <label>Origin:</label>
-            <InputText class="form-control" @bind-Value="package.Origin" />
-        </div>
-
-        <div class="mb-2">
-            <label>Destination:</label>
-            <InputText class="form-control" @bind-Value="package.Destination" />
-        </div>
-
-        <div class="mb-2">
-            <label>Hotel Name:</label>
-            <InputText class="form-control" @bind-Value="package.HotelName" />
-        </div>
-
-        <div class="mb-2">
-            <label>Hotel ID:</label>
-            <InputText class="form-control" @bind-Value="package.HotelId" />
-        </div>
-        <div class="mb-2">
-            <label>Title:</label>
-            <InputText class="form-control" @bind-Value="package.Title" />
-        </div>
-        <div class="mb-2">
-            <label>Description:</label>
-            <InputText class="form-control" @bind-Value="package.Description" />
-        </div>
-
-        <button class="btn btn-success" type="submit">Save Package</button>
-    </EditForm>
-}
-
 
 @code {
-    private TravelPackage package = new();
-    private string? message;
+    private TravelPackageTemplate templateModel = new();
+    private List<HotelData> hotels = new();
+    private bool showSuccessMessage = false;
 
-    private async Task SavePackage()
+    private async Task SearchHotels()
     {
-        db.TravelPackages.Add(package);
-        await db.SaveChangesAsync();
+        // Use dummy dates just to fetch hotel options
+        hotels = await travelAPI.GetHotelsAsync(
+            templateModel.Destination ?? "LON",
+            DateTime.Today.AddDays(10).ToString("yyyy-MM-dd"),
+            DateTime.Today.AddDays(60).ToString("yyyy-MM-dd"),
+            1);
+    }
 
-        message = "Travel package created succesfully";
-        package = new();
+    private async Task HandleValidSubmit()
+    {
+        db.TravelPackageTemplates.Add(templateModel);
+        await db.SaveChangesAsync();
+        showSuccessMessage = true;
+        templateModel = new(); // Reset form
     }
 
     //Checks whether the user should be redirected to the login page or not, after the page is rendered.
@@ -82,4 +96,3 @@ else
     }
 
 }
- *@

@@ -11,6 +11,7 @@ namespace Gotorz.Data
         public DbSet<Message> Messages { get; set; }
         public DbSet<Order> Orders { get; set; }
         public DbSet<TravelPackage> TravelPackages { get; set; }
+        public DbSet<TravelPackageTemplate> TravelPackageTemplates { get; set; }
 
     }
 }

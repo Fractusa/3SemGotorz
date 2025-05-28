@@ -9,7 +9,7 @@ using System.Globalization;
 var builder = WebApplication.CreateBuilder(args);
 
 
-//Changes the dateTime format to a proper format
+//Changes the dateTime format to a danish format
 var culture = new CultureInfo("da-DK");
 CultureInfo.CurrentCulture = culture;
 CultureInfo.CurrentUICulture = culture;
