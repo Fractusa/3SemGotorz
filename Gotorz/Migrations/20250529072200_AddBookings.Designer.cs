@@ -4,6 +4,7 @@ using Gotorz.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Gotorz.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250529072200_AddBookings")]
+    partial class AddBookings
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -43,32 +46,19 @@ namespace Gotorz.Migrations
                     b.Property<decimal>("DeparturePriceAtCreation")
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<DateTime>("DepartureTime")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("Destination")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("HotelCheckIn")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime>("HotelCheckOut")
-                        .HasColumnType("datetime2");
 
                     b.Property<string>("HotelId")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("HotelName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<decimal>("HotelPriceAtCreation")
                         .HasColumnType("decimal(18,2)");
-
-                    b.Property<DateTime>("LandingTimeDepartureFlight")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime>("LandingTimeReturnFlight")
-                        .HasColumnType("datetime2");
 
                     b.Property<string>("Origin")
                         .IsRequired()
@@ -81,18 +71,8 @@ namespace Gotorz.Migrations
                     b.Property<decimal>("ReturnPriceAtCreation")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<DateTime>("TakeoffTimeDepartureFlight")
+                    b.Property<DateTime>("ReturnTime")
                         .HasColumnType("datetime2");
-
-                    b.Property<DateTime>("TakeoffTimeReturnFlight")
-                        .HasColumnType("datetime2");
-
-                    b.Property<decimal>("TotalPrice")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<string>("UserEmail")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 

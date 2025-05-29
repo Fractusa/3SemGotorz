@@ -10,7 +10,7 @@ namespace Gotorz.Data
         public DbSet<RegisterModel> Users { get; set; }
         public DbSet<Message> Messages { get; set; }
         public DbSet<Order> Orders { get; set; }
-        public DbSet<TravelPackage> TravelPackages { get; set; }
+        public DbSet<Booking> Bookings { get; set; }
         public DbSet<TravelPackageTemplate> TravelPackageTemplates { get; set; }
 
     }

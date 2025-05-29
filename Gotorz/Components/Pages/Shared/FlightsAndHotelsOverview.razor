@@ -1,23 +1,38 @@
-﻿@using Gotorz.Models
+﻿@page "/bookPackage"
+@rendermode InteractiveServer
+@using Gotorz.Models
 @using Gotorz.Services
 @using Gotorz.Data
 @using System.ComponentModel.DataAnnotations
 @using Microsoft.AspNetCore.Components.Forms
 @using Microsoft.EntityFrameworkCore
-@rendermode InteractiveServer
 @inject ApplicationDbContext db
-
-@page "/flightsandhotels"
 @inject TravelAPIService travelAPI
+@inject AuthStateService authState
 
 
-<h3>Select a Travel Package Template</h3>
+<h3>Search by Origin and Destination</h3>
 
-@if (templates.Count == 0)
-{
-    <p>Loading templates...</p>
-}
-else
+<EditForm Model="@locationModel" OnValidSubmit="HandleLocationSearch">
+    <DataAnnotationsValidator/>
+    <ValidationSummary/>
+
+    <div class="form-group mb-2">
+        <label>Origin Airport Code:</label>
+        <InputText class="form-control" @bind-Value="locationModel.Origin" />
+    </div>
+
+    <div class="form-group mb-2">
+        <label>Destination Airport Code:</label>
+        <InputText class="form-control" @bind-Value="locationModel.Destination" />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Search Templates</button>
+</EditForm>
+
+
+
+@if (templates.Any())
 {
     <InputRadioGroup @bind-Value="selectedTemplateId">
         @foreach (var template in templates)
@@ -31,112 +46,122 @@ else
             </div>
         }
     </InputRadioGroup>
-
-    <button class="btn btn-primary mb-4" @onclick="ApplyTemplate">Use Selected Template</button>
+    <button class="btn btn-primary mb-4" @onclick="ConfirmTemplate">Select Template</button>
 }
 
-<h3 class="mb-3">Search Flights and Hotels</h3>
-<EditForm Model="@searchModel" OnValidSubmit="HandleSearch">
-    <DataAnnotationsValidator />
-    <ValidationSummary />
-
-    <div class="form-group mb-2">
-        <label>Origin Airport Code:</label>
-        <InputText class="form-control" @bind-Value="searchModel.Origin" />
-    </div>
-
-    <div class="form-group mb-2">
-        <label>Destination Airport Code:</label>
-        <InputText class="form-control" @bind-Value="searchModel.Destination" />
-    </div>
-
-    <div class="form-group mb-2">
-        <label>Departure Date:</label>
-        <InputDate class="form-control" @bind-Value="searchModel.DepartureDate" />
-    </div>
-
-    <div class="form-group mb-2">
-        <label>Return Date:</label>
-        <InputDate class="form-control" @bind-Value="searchModel.ReturnDate" />
-    </div>
-
-    <div class="form-group mb-2">
-        <label>Adults:</label>
-        <InputNumber class="form-control" @bind-Value="searchModel.Adults" />
-    </div>
-
-    <button type="submit" class="btn btn-primary">Search</button>
-</EditForm>
-
-<hr />
-
-<h4>Departure Flights</h4>
-<InputRadioGroup @bind-Value="selectedDepartureFlightId">
-    @foreach (var flight in DepartureFlights)
-    {
-        <div class="form-check">
-            <InputRadio class="form-check-input" Value="@flight.FlightId" />
-            <label class="form-check-label">
-                @flight.DepartureAirport → @flight.ArrivalAirport - @flight.Price DKK
-            </label>
-        </div>
-    }
-</InputRadioGroup>
-
-<h4>Return Flights</h4>
-<InputRadioGroup @bind-Value="selectedReturnFlightId">
-    @foreach (var flight in ReturnFlights)
-    {
-        <div class="form-check">
-            <InputRadio class="form-check-input" Value="@flight.FlightId" />
-            <label class="form-check-label">
-                @flight.DepartureAirport → @flight.ArrivalAirport - @flight.Price DKK
-            </label>
-        </div>
-    }
-</InputRadioGroup>
-
-<h4>Hotels</h4>
-<InputRadioGroup @bind-Value="selectedHotelId">
-    @foreach (var hotel in Hotels)
-    {
-        <div class="form-check">
-            <InputRadio class="form-check-input" Value="@hotel.HotelId" />
-            <label class="form-check-label">
-                @hotel.HotelName - @hotel.Price DKK
-            </label>
-        </div>
-    }
-</InputRadioGroup>
-
-@if (!string.IsNullOrEmpty(selectedDepartureFlightId) &&
-   !string.IsNullOrEmpty(selectedReturnFlightId) &&
-   !string.IsNullOrEmpty(selectedHotelId))
+@if(selectedTemplate != null)
 {
     <hr />
-    <h4>Your Travel Package</h4>
-    <p>
-        Selected Departure Flight ID: @selectedDepartureFlightId<br />
-        Selected Return Flight ID: @selectedReturnFlightId<br />
-        Selected Hotel ID: @selectedHotelId
-    </p>
-    <button class="btn btn-success" @onclick="CreateTravelPackage">Create Package</button>
+    <h3>Step 3: Enter Travel Dates and Passengers</h3>
+    <EditForm Model="@flightModel" OnValidSubmit="HandleFlightSearch">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div class="form-group mb-2">
+            <label>Departure Date:</label>
+            <InputDate class="form-control" @bind-Value="flightModel.DepartureTime" />
+        </div>
+
+        <div class="form-group mb-2">
+            <label>Return Date:</label>
+            <InputDate class="form-control" @bind-Value="flightModel.ReturnTime" />
+        </div>
+
+        <div class="form-group mb-2">
+            <label>Adults:</label>
+            <InputNumber class="form-control" @bind-Value="flightModel.Adults" />
+        </div>
+
+        <button type="submit" class="btn btn-primary">Search Availability</button>
+    </EditForm>
 }
 
-@if (travelPackages.Any())
+
+@if (DepartureFlights.Any() && ReturnFlights.Any() && selectedTemplate?.Hotel != null)
 {
     <hr />
-    <h4>Booked Packages</h4>
+    <h4>Departure Flights</h4>
+    <InputRadioGroup Value="@selectedDepartureFlightId"
+    ValueChanged="@((string newValue) => OnDepartureFlightSelectionChanged(newValue))"
+    ValueExpression="() => selectedDepartureFlightId">
+        @foreach (var flight in DepartureFlights)
+        {
+            <div class="form-check">
+                <InputRadio class="form-check-input" Value="@flight.FlightId" />
+                <label class="form-check-label">
+                    @flight.DepartureAirport → @flight.ArrivalAirport<br />
+                    Departure: @flight.DepartureTime.ToString("yyyy-MM-dd HH:mm")<br />
+                    Arrival: @flight.ArrivalTime.ToString("yyyy-MM-dd HH:mm")<br />
+                    Price: @flight.Price.ToString("N2") DKK
+                </label>
+            </div>
+        }
+    </InputRadioGroup>
+
+    <h4>Departure Flights</h4>
+    <InputRadioGroup Value="@selectedReturnFlightId"
+    ValueChanged="@((string newValue) => OnReturnFlightSelectionChanged(newValue))"
+    ValueExpression="() => selectedReturnFlightId">
+        @foreach (var flight in DepartureFlights)
+        {
+            <div class="form-check">
+                <InputRadio class="form-check-input" Value="@flight.FlightId" />
+                <label class="form-check-label">
+                    @flight.DepartureAirport → @flight.ArrivalAirport<br />
+                    Departure: @flight.DepartureTime.ToString("yyyy-MM-dd HH:mm")<br />
+                    Arrival: @flight.ArrivalTime.ToString("yyyy-MM-dd HH:mm")<br />
+                    Price: @flight.Price.ToString("N2") DKK
+                </label>
+            </div>
+        }
+    </InputRadioGroup>
+
+    <h4>Hotel</h4>
+    @if (selectedTemplate?.Hotel != null)
+    {
+        <div class="card mb-3" style="max-width: 600px;">
+            <div class="card-body">
+                <h5 class="card-title">@selectedTemplate.Hotel.HotelName</h5>
+                <p class="card-text">
+                    Price for selected dates: <strong>@selectedTemplate.Hotel.Price.ToString("N2") DKK</strong>
+                </p>
+            </div>
+        </div>
+    }
+
+    @if (totalPackagePrice.HasValue)
+    {
+        <div class="alert alert-info mt-3">
+            <strong>Total Package Price:</strong> @totalPackagePrice.Value.ToString("N2") DKK<br />
+            <strong>Per Adult:</strong> @((totalPackagePrice.Value / flightModel.Adults).ToString("N2")) DKK
+        </div>
+    }
+
+    <button class="btn btn-success mt-3" @onclick="CreateBooking">Create Booking</button>
+}
+
+
+
+@if (bookings.Any())
+{
+    <hr />
+    <h4>Booking</h4>
     <ul>
-        @foreach (var p in travelPackages)
+        @foreach (var booking in bookings)
         {
             <li>
-                Creation Date: @p.CreationDate.ToShortDateString() |
-                From: @p.Origin → @p.Destination |
-                Depart: @p.DepartureDate.ToShortDateString() |
-                Return: @p.ReturnDate.ToShortDateString() |
-                Adults: @p.Adults |
-                Total: @p.TotalPrice DKK
+                User: @booking.UserEmail
+                Creation Date: @booking.CreationDate.ToShortDateString() |
+                From: @booking.Origin → @booking.Destination |
+                Depart Flight Takeoff: @booking.TakeoffTimeDepartureFlight.ToShortDateString() |
+                Depart Flight Landing: @booking.LandingTimeDepartureFlight.ToShortDateString() |
+                Return Flight Takeoff: @booking.TakeoffTimeReturnFlight.ToShortDateString() |
+                Return Flight Landing: @booking.LandingTimeReturnFlight.ToShortDateString() |
+                Hotel: @booking.HotelName |
+                Hotel CheckIn: @booking.HotelCheckIn |
+                Hotel CheckOut: @booking.HotelCheckOut |
+                Adults: @booking.Adults |
+                Total: @booking.TotalPrice.ToString("N2") DKK
             </li>
         }
     </ul>
@@ -147,114 +172,162 @@ else
     private int selectedTemplateId;
     private string selectedDepartureFlightId;
     private string selectedReturnFlightId;
-    private string selectedHotelId;
+    private decimal? totalPackagePrice;
 
-    private List<TravelPackageTemplate> templates = new();
-    private List<TravelPackage> travelPackages = new();
-
-    private SearchModel searchModel = new()
-        {
-            Origin = "CPH",
-            Destination = "LON",
-            DepartureDate = DateTime.Today.AddDays(10),
-            ReturnDate = DateTime.Today.AddDays(17),
-            Adults = 1
-        };
+    private TravelPackageTemplate? selectedTemplate;
+    private LocationModel locationModel = new();
+    private FlightModel flightModel = new();
 
     private List<FlightData> DepartureFlights = new();
     private List<FlightData> ReturnFlights = new();
-    private List<HotelData> Hotels = new();
+    private List<TravelPackageTemplate> templates = new();
+    private List<Booking> bookings = new();
 
-    protected override async Task OnInitializedAsync()
+
+
+
+    private void ConfirmTemplate()
     {
-        templates = await db.TravelPackageTemplates.ToListAsync();
+        selectedTemplate = templates.FirstOrDefault(t => t.Id == selectedTemplateId);
+    }
 
-        foreach (var t in templates)
+    private async Task HandleLocationSearch()
+    {
+        templates = await db.TravelPackageTemplates
+        .Where(t => t.Origin == locationModel.Origin && t.Destination == locationModel.Destination)
+        .ToListAsync();
+
+        foreach(var t in templates)
         {
             var hotels = await travelAPI.GetHotelsAsync(t.Destination, DateTime.Today.ToString("yyyy-MM-dd"), DateTime.Today.AddDays(7).ToString("yyyy-MM-dd"), 1);
             t.Hotel = hotels.FirstOrDefault(h => h.HotelId == t.HotelId);
         }
-    }
-    private void ApplyTemplate()
-    {
-        var selected = templates.FirstOrDefault(t => t.Id == selectedTemplateId);
-        if (selected != null)
-        {
-            searchModel.Origin = selected.Origin;
-            searchModel.Destination = selected.Destination;
-            selectedHotelId = selected.HotelId;
-            Hotels = new List<HotelData> { selected.Hotel }; // Replace hotel list with only this one
-        }
+
+        selectedTemplate = null;
     }
 
 
-
-    private async Task HandleSearch()
+    private async Task HandleFlightSearch()
     {
+        if(selectedTemplate == null)
+            return;
+
+
         DepartureFlights = await travelAPI.GetFlightsAsync(
-            searchModel.Origin, searchModel.Destination, searchModel.DepartureDate.ToString("yyyy-MM-dd"), searchModel.Adults);
+            selectedTemplate.Origin, selectedTemplate.Destination, flightModel.DepartureTime.ToString("yyyy-MM-dd"), flightModel.Adults);
 
         ReturnFlights = await travelAPI.GetFlightsAsync(
-            searchModel.Destination, searchModel.Origin, searchModel.ReturnDate.ToString("yyyy-MM-dd"), searchModel.Adults);
+            selectedTemplate.Destination, selectedTemplate.Origin, flightModel.ReturnTime.ToString("yyyy-MM-dd"), flightModel.Adults);
 
-        Hotels = await travelAPI.GetHotelsAsync(
-            searchModel.Destination, searchModel.DepartureDate.ToString("yyyy-MM-dd"),
-            searchModel.ReturnDate.ToString("yyyy-MM-dd"), searchModel.Adults);
+        var hotelOptions = await travelAPI.GetHotelsAsync(
+        selectedTemplate.Destination,
+        flightModel.DepartureTime.ToString("yyyy-MM-dd"),
+        flightModel.ReturnTime.ToString("yyyy-MM-dd"),
+        flightModel.Adults);
+
+        selectedTemplate.Hotel = hotelOptions.FirstOrDefault(h => h.HotelId == selectedTemplate.HotelId);
+
+        var departure = DepartureFlights.FirstOrDefault();
+        var ret = ReturnFlights.FirstOrDefault();
+        var hotel = selectedTemplate.Hotel;
+
+        if (departure != null && ret != null && hotel != null)
+        {
+            totalPackagePrice = departure.Price + ret.Price + hotel.Price;
+        }
+        else
+        {
+            totalPackagePrice = null;
+        }
     }
 
-    private async Task CreateTravelPackage()
+    private async Task CreateBooking()
     {
-        if (string.IsNullOrEmpty(selectedDepartureFlightId) ||
-            string.IsNullOrEmpty(selectedReturnFlightId) ||
-            string.IsNullOrEmpty(selectedHotelId))
-        {
-            return;
-        }
-
+        var userEmail = authState.UserEmail;
         var departureFlight = DepartureFlights.FirstOrDefault(f => f.FlightId == selectedDepartureFlightId);
         var returnFlight = ReturnFlights.FirstOrDefault(f => f.FlightId == selectedReturnFlightId);
-        var hotel = Hotels.FirstOrDefault(h => h.HotelId == selectedHotelId);
+        var hotel = selectedTemplate.Hotel;
 
-        if (departureFlight != null && returnFlight != null && hotel != null)
+        if (departureFlight != null && returnFlight != null && hotel != null && selectedTemplate != null)
         {
-            var newPackage = new TravelPackage
+            var total = departureFlight.Price + returnFlight.Price + hotel.Price;
+
+            var newBooking = new Booking
                 {
                     DepartureFlightId = departureFlight.FlightId,
                     ReturnFlightId = returnFlight.FlightId,
                     HotelId = hotel.HotelId,
+                    HotelName = hotel.HotelName,
+                    HotelCheckIn = departureFlight.ArrivalTime,
+                    HotelCheckOut = returnFlight.DepartureTime,
+                    UserEmail = userEmail,
                     DeparturePriceAtCreation = departureFlight.Price,
                     ReturnPriceAtCreation = returnFlight.Price,
                     HotelPriceAtCreation = hotel.Price,
-                    Origin = searchModel.Origin,
-                    Destination = searchModel.Destination,
-                    DepartureDate = searchModel.DepartureDate,
-                    ReturnDate = searchModel.ReturnDate,
-                    Adults = searchModel.Adults,
+                    TotalPrice = total,
+                    Origin = selectedTemplate.Origin,
+                    Destination = selectedTemplate.Destination,
+                    TakeoffTimeDepartureFlight = departureFlight.DepartureTime,
+                    LandingTimeDepartureFlight = departureFlight.ArrivalTime,
+                    TakeoffTimeReturnFlight = returnFlight.DepartureTime,
+                    LandingTimeReturnFlight = returnFlight.ArrivalTime,
+                    Adults = flightModel.Adults,
                     CreationDate = DateTime.UtcNow
                 };
 
-            db.TravelPackages.Add(newPackage);
+            db.Bookings.Add(newBooking);
             await db.SaveChangesAsync();
 
-            travelPackages.Add(newPackage);
+            bookings.Add(newBooking);
         }
     }
+    private void CalculateTotalPackagePrice(ChangeEventArgs? e = null)
+    {
+        var departure = DepartureFlights.FirstOrDefault(f => f.FlightId == selectedDepartureFlightId);
+        var ret = ReturnFlights.FirstOrDefault(f => f.FlightId == selectedReturnFlightId);
+        var hotel = selectedTemplate?.Hotel;
 
-    public class SearchModel
+        if (departure != null && ret != null && hotel != null)
+        {
+            totalPackagePrice = departure.Price + ret.Price + hotel.Price;
+        }
+        else
+        {
+            totalPackagePrice = null;
+        }
+    }
+    private Task OnDepartureFlightSelectionChanged(string newValue)
+    {
+        selectedDepartureFlightId = newValue;
+        CalculateTotalPackagePrice();
+        return Task.CompletedTask;
+    }
+    private Task OnReturnFlightSelectionChanged(string newValue)
+    {
+        selectedReturnFlightId = newValue;
+        CalculateTotalPackagePrice();
+        return Task.CompletedTask;
+    }
+
+    public class LocationModel
     {
         [Required]
-        public string Origin { get; set; }
+        public string Origin { get; set; } = string.Empty;
 
         [Required]
-        public string Destination { get; set; }
+        public string Destination { get; set; } = string.Empty;
+    }
+
+    public class FlightModel
+    {
+        [Required]
+        public DateTime DepartureTime { get; set; } = DateTime.Today.AddDays(10);
 
         [Required]
-        public DateTime DepartureDate { get; set; }
+        public DateTime ReturnTime { get; set; } = DateTime.Today.AddDays(17);
 
-        [Required]
-        public DateTime ReturnDate { get; set; }
 
         [Range(1, 5)]
-        public int Adults { get; set; }
+        public int Adults { get; set; } = 1;
     }
 }
