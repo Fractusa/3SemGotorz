@@ -12,46 +12,82 @@
 
 
 
-<h3>Your order history</h3>
+<h3>Your booking history</h3>
 
 
 @if (!authState.IsLoggedIn)
 {
     <p>Redirecting to login</p>
 }
-else if(orders == null)
+else if(bookings == null)
 {
-    <p>Loading your orders</p>
+    <p>Loading your bookings</p>
 }
 else
 {
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Date</th>
-                <th>Destination</th>
-                <th>Price</th>
-                <th>Status</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var order in orders)
+    @if (bookings.Any())
+    {
+        <h3 class="mb-4">Your Bookings</h3>
+        <div class="row row-cols-1 row-cols-md-2 g-4">
+            @foreach (var booking in bookings)
             {
-                <tr>
-                    <td>@order.OrderDate.ToShortDateString()</td>
-                    <td>@order.Destination</td>
-                    <td>@order.Price.ToString("C")</td>
-                    <td>@order.Status</td>
-                </tr>
+                <div class="col">
+                    <div class="card shadow-sm border-0">
+                        <div class="card-body">
+                            <h5 class="card-title">@booking.Origin → @booking.Destination</h5>
+                            <h6 class="card-subtitle mb-2 text-muted">User: @booking.UserEmail | Adults: @booking.Adults</h6>
+
+                            <hr />
+
+                            <p>
+                                <strong>Booking id</strong> @booking.Id<br/>
+                                <strong>Departure Flight:</strong> @booking.DepartureFlightId<br />
+                                <strong>Takeoff:</strong> @booking.TakeoffTimeDepartureFlight.ToString("f")<br />
+                                <strong>Landing:</strong> @booking.LandingTimeDepartureFlight.ToString("f")
+                            </p>
+
+                            <p>
+                                <strong>Return Flight:</strong> @booking.ReturnFlightId<br />
+                                <strong>Takeoff:</strong> @booking.TakeoffTimeReturnFlight.ToString("f")<br />
+                                <strong>Landing:</strong> @booking.LandingTimeReturnFlight.ToString("f")
+                            </p>
+
+                            <hr />
+
+                            <p>
+                                <strong>Hotel:</strong> @booking.HotelName (ID: @booking.HotelId)<br />
+                                <strong>Check-in:</strong> @booking.HotelCheckIn.ToString("f")<br />
+                                <strong>Check-out:</strong> @booking.HotelCheckOut.ToString("f")
+                            </p>
+
+                            <hr />
+
+                            <p>
+                                <strong>Created On:</strong> @booking.CreationDate.ToString("f")<br />
+                                <strong>Departure Price:</strong> @booking.DeparturePriceAtCreation.ToString("N2") DKK<br />
+                                <strong>Return Price:</strong> @booking.ReturnPriceAtCreation.ToString("N2") DKK<br />
+                                <strong>Hotel Price:</strong> @booking.HotelPriceAtCreation.ToString("N2") DKK<br />
+                            </p>
+
+                            <h5 class="mt-3 text-primary"><strong>Total:</strong> @booking.TotalPrice.ToString("N2") DKK</h5>
+                        </div>
+                    </div>
+                </div>
             }
-        </tbody>
-    </table>
+        </div>
+    }
+    else
+    {
+        <p>No bookings found.</p>
+    }
+    
+
 }
 
 
 
 @code {
-    private List<Order>? orders;
+    private List<Booking>? bookings;
 
 
     //Checks whether the user should be redirected to the login page or not, after the page is rendered.
@@ -74,9 +110,9 @@ else
     {
         var email = authState.UserEmail;
 
-        orders = await db.Orders
-            .Where(b => b.CustomerEmail == email)
-            .OrderByDescending(b => b.OrderDate)
+        bookings = await db.Bookings
+            .Where(b => b.UserEmail == email)
+            .OrderByDescending(b => b.CreationDate)
             .ToListAsync();
     }
 

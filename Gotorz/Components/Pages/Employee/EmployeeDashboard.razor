@@ -23,26 +23,52 @@ else
     </div>
 
 
-    @if (userOrders != null)
+    @if (userBookings != null)
     {
-        <h4>Orders for @searchEmail</h4>
-        <table class="table">
+        <h4>Bookings for @searchEmail</h4>
+        <table class="table table-sm small">
             <thead>
                 <tr>
-                    <th>Order ID</th>
-                    <th>Date</th>
-                    <th>Status</th>
-                    <th>Price</th>
+                    <th>User email</th>
+                    <th>Booking id</th>
+                    <th>Departure flight id</th>
+                    <th>Departure takeoff time</th>
+                    <th>Departure landing time</th>
+                    <th>Return flight id</th>
+                    <th>Return takeoff time</th>
+                    <th>Return landing time</th>
+                    <th>Hotel</th>
+                    <th>Hotel id</th>
+                    <th>Hotel checkin time</th>
+                    <th>Hotel checkout time</th>
+                    <th>Booking creation time</th>
+                    <th>Departure flight price</th>
+                    <th>Return flight price</th>
+                    <th>Hotel price</th>
+                    <th>Total price</th>
                 </tr>
             </thead>
             <tbody>
-                @foreach (var order in userOrders)
+                @foreach (var booking in userBookings)
                 {
                     <tr>
-                        <td>@order.Id</td>
-                        <td>@order.OrderDate.ToShortDateString()</td>
-                        <td>@order.Status</td>
-                        <td>@order.Price.ToString("C")</td>
+                        <td>@booking.UserEmail</td>
+                        <td>@booking.Id</td>
+                        <td>@booking.DepartureFlightId</td>
+                        <td>@booking.TakeoffTimeDepartureFlight.ToString("f")</td>
+                        <td>@booking.LandingTimeDepartureFlight.ToString("f")</td>
+                        <td>@booking.ReturnFlightId</td>
+                        <td>@booking.TakeoffTimeReturnFlight.ToString("f")</td>
+                        <td>@booking.LandingTimeReturnFlight.ToString("f")</td>
+                        <td>@booking.HotelName</td>
+                        <td>@booking.HotelId</td>
+                        <td>@booking.HotelCheckIn.ToString("f")</td>
+                        <td>@booking.HotelCheckOut.ToString("f")</td>
+                        <td>@booking.CreationDate.ToString("f")</td>
+                        <td>@booking.DeparturePriceAtCreation.ToString("N2") DKK</td>
+                        <td>@booking.ReturnPriceAtCreation.ToString("N2") DKK</td>
+                        <td>@booking.HotelPriceAtCreation.ToString("N2") DKK</td>
+                        <td>@booking.TotalPrice.ToString("N2") DKK</td>
                     </tr>
                 }
             </tbody>
@@ -71,7 +97,7 @@ else
     private List<RegisterModel> users;
     private string selectedUserEmail;
     private RegisterModel selectedUser;
-    private List<Order> userOrders = new();
+    private List<Booking> userBookings = new();
     private List<Message> userMessages = new();
     private string searchEmail;
 
@@ -95,8 +121,8 @@ else
     {
         if (!string.IsNullOrWhiteSpace(searchEmail))
         {
-            userOrders = await db.Orders
-            .Where(o => o.CustomerEmail == searchEmail)
+            userBookings = await db.Bookings
+            .Where(b => b.UserEmail == searchEmail)
             .ToListAsync();
 
             userMessages = await db.Messages

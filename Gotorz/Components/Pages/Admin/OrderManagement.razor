@@ -20,45 +20,58 @@ else
         <label>Date from: <input type="date" @bind="filterFrom" /></label>
         <label>Date to: <input type="date" @bind="filterTo" /></label>
         <label>User Email: <input type="text" @bind="filterEmail" placeholder="Enter user email"/></label>
-        <label>Status:
-            <select @bind="filterStatus">
-                <option value="">All</option>
-                <option>Pending</option>
-                <option>Completed</option>
-                <option>Cancelled</option>
-            </select>
-        </label>
         <button class="btn btn-primary" @onclick="Filter">Apply</button>
     </div>
 }
-@if(filteredOrders == null)
+@if(filteredBookings == null)
 {
     <p>Loading</p>
 }
 else
 {
-    //need to change destination to package when package is implemented in database
-    <table class="table table-striped">
+    <table class="table table-sm small">
         <thead>
             <tr>
-                <th>Order ID</th>
-                <th>User Email</th>
-                <th>Destination</th>
-                <th>Date</th>
-                <th>Status</th>
-                <th>Price</th>
+                <th>User email</th>
+                <th>Booking id</th>
+                <th>Departure flight id</th>
+                <th>Departure takeoff time</th>
+                <th>Departure landing time</th>
+                <th>Return flight id</th>
+                <th>Return takeoff time</th>
+                <th>Return landing time</th>
+                <th>Hotel</th>
+                <th>Hotel id</th>
+                <th>Hotel checkin time</th>
+                <th>Hotel checkout time</th>
+                <th>Booking creation time</th>
+                <th>Departure flight price</th>
+                <th>Return flight price</th>
+                <th>Hotel price</th>
+                <th>Total price</th>
             </tr>
         </thead>
         <tbody>
-            @foreach (var order in filteredOrders)
+            @foreach (var booking in filteredBookings)
             {
                 <tr>
-                    <td>@order.Id</td>
-                    <td>@order.CustomerEmail</td>
-                    <td>@order.Destination</td>
-                    <td>@order.OrderDate.ToShortDateString()</td>
-                    <td>@order.Status</td>
-                    <td>@order.Price.ToString("C")</td>
+                    <td>@booking.UserEmail</td>
+                    <td>@booking.Id</td>
+                    <td>@booking.DepartureFlightId</td>
+                    <td>@booking.TakeoffTimeDepartureFlight.ToString("f")</td>
+                    <td>@booking.LandingTimeDepartureFlight.ToString("f")</td>
+                    <td>@booking.ReturnFlightId</td>
+                    <td>@booking.TakeoffTimeReturnFlight.ToString("f")</td>
+                    <td>@booking.LandingTimeReturnFlight.ToString("f")</td>
+                    <td>@booking.HotelName</td>
+                    <td>@booking.HotelId</td>
+                    <td>@booking.HotelCheckIn.ToString("f")</td>
+                    <td>@booking.HotelCheckOut.ToString("f")</td>
+                    <td>@booking.CreationDate.ToString("f")</td>
+                    <td>@booking.DeparturePriceAtCreation.ToString("N2") DKK</td>
+                    <td>@booking.ReturnPriceAtCreation.ToString("N2") DKK</td>
+                    <td>@booking.HotelPriceAtCreation.ToString("N2") DKK</td>
+                    <td>@booking.TotalPrice.ToString("N2") DKK</td>
                 </tr>
             }
         </tbody>
@@ -67,8 +80,8 @@ else
 
 
 @code {
-    private List<Order> allOrders;
-    private List<Order> filteredOrders;
+    private List<Booking> allBookings;
+    private List<Booking> filteredBookings;
 
     private string filterEmail = string.Empty;
     private DateTime? filterFrom;
@@ -77,20 +90,19 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        allOrders = await db.Orders.ToListAsync();
-        filteredOrders = allOrders;
+        allBookings = await db.Bookings.ToListAsync();
+        filteredBookings = allBookings;
     }
 
     private void Filter()
     {
         //applies the given filter inputs to the search on the order table in the database and creates a list with the orders that
         //matches the given search inputs
-        filteredOrders = allOrders
-        .Where(o =>
-        (!filterFrom.HasValue || o.OrderDate >= filterFrom.Value) &&
-        (!filterTo.HasValue || o.OrderDate <= filterTo.Value) &&
-        (string.IsNullOrWhiteSpace(filterStatus) || o.Status == filterStatus) &&
-        (string.IsNullOrWhiteSpace(filterEmail) || o.CustomerEmail.Contains(filterEmail, StringComparison.OrdinalIgnoreCase)))
+        filteredBookings = allBookings
+        .Where(b =>
+        (!filterFrom.HasValue || b.CreationDate >= filterFrom.Value) &&
+        (!filterTo.HasValue || b.CreationDate <= filterTo.Value) &&
+        (string.IsNullOrWhiteSpace(filterEmail) || b.UserEmail.Contains(filterEmail, StringComparison.OrdinalIgnoreCase)))
         .ToList();
     }
     //Checks whether the user should be redirected to the login page or not, after the page is rendered.
