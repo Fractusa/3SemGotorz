@@ -9,6 +9,7 @@
 @inject ApplicationDbContext db
 @inject TravelAPIService travelAPI
 @inject AuthStateService authState
+@inject NavigationManager navigation
 
 
 <h3>Search by Origin and Destination</h3>
@@ -29,7 +30,7 @@
 
     <button type="submit" class="btn btn-primary">Search Templates</button>
 </EditForm>
-
+<button @onclick=UserPageRedirect>Back</button>
 
 
 @if (templates.Any())
@@ -184,7 +185,10 @@
     private List<Booking> bookings = new();
 
 
-
+    private void UserPageRedirect()
+    {
+        navigation.NavigateTo("/userPage");
+    }
 
     private void ConfirmTemplate()
     {

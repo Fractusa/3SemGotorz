@@ -20,7 +20,7 @@ else
     //admin information/functionality goes here
     <button @onclick=UserManagementRedirect>Manage users</button>
     <button @onclick=OrderManagementRedirect>Manage orders</button>
-
+    <button @onclick=UserPageRedirect>Back</button>
 }
 
 
@@ -62,8 +62,10 @@ else
     {
         authState.OnChange -= StateHasChanged;
     }
-
-
+    private void UserPageRedirect()
+    {
+        navigation.NavigateTo("/userPage");
+    }
 
    
 }
