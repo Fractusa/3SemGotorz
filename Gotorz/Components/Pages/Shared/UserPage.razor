@@ -1,8 +1,14 @@
 ﻿@page "/userPage"
 @rendermode InteractiveServer
 @using Services
+@using Microsoft.AspNetCore.Authentication
+@using Microsoft.AspNetCore.Authentication.Cookies
+@using Microsoft.AspNetCore.Components.Authorization
+@using System.Security.Claims
 @inject AuthStateService authState
 @inject NavigationManager navigation
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IHttpContextAccessor HttpContextAccessor
 @implements IDisposable
 
 <h3>UserPage</h3>
@@ -14,7 +20,7 @@
     <button @onclick=MessageInboxRedirect>Message Inbox</button>
     <button @onclick=OrderHistoryRedirect>Order history</button>
     <button @onclick=ChangePasswordRedirect>Change password</button>
-    <button @onclick="authState.Logout">Logout</button>
+    <button @onclick="PerformLogout">Logout</button>
 
 }
 else
@@ -35,17 +41,60 @@ else if (authState.IsLoggedIn && authState.UserRole == "Admin")
 }
 
 @code {
-    //Subscribes to the OnChange event from AuthStateService when initialized, allowing the page to automatically call StateHasChanged() whenever the login state from
-    //AuthStateService changes. StateHasChanged is a Blazor method that re-renders the UI.
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        authState.OnChange += StateHasChanged;
+        authState.OnChange += HandleAuthStateChanged;
+        var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authenticationState.User;
+
+        if (user.Identity != null && user.Identity.IsAuthenticated)
+        {
+            if (!authState.IsLoggedIn || authState.UserEmail != user.Identity.Name)
+            {
+                var email = user.FindFirst(ClaimTypes.Name)?.Value;
+                var role = user.FindFirst(ClaimTypes.Role)?.Value;
+                if (!string.IsNullOrEmpty(email) && !string.IsNullOrEmpty(role))
+                {
+                    authState.Login(email, role);
+                }
+                else
+                {
+                    if (authState.IsLoggedIn) authState.Logout();
+                }
+            }
+        }
+        else
+        {
+            if (authState.IsLoggedIn)
+            {
+                authState.Logout();
+            }
+        }
+    }
+
+    private async void HandleAuthStateChanged()
+    {
+        await InvokeAsync(StateHasChanged);
     }
 
     //When the page is closed or redirected away from, this method unsubscribes the page from the OnChange event.
     public void Dispose()
     {
-        authState.OnChange -= StateHasChanged;
+        authState.OnChange -= HandleAuthStateChanged;
+    }
+
+    private void PerformLogout()
+    {
+        // Clear your client-side AuthStateService immediately for a responsive UI
+        // before the full navigation.
+        if (authState.IsLoggedIn)
+        {
+            authState.Logout();
+        }
+
+        // Navigate to the server-side logout endpoint.
+        // forceLoad: true ensures it's a full browser navigation, not Blazor's internal routing.
+        navigation.NavigateTo("/account/logout", forceLoad: true);
     }
 
     private void AdminPanelRedirect()

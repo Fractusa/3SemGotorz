@@ -1,81 +1,113 @@
 ﻿@page "/login"
-@rendermode InteractiveServer
+
 @inject ApplicationDbContext db
 @inject NavigationManager navigation
 @inject AuthStateService authState
+@inject IHttpContextAccessor HttpContextAccessor
+
 @using Gotorz.Data
 @using Gotorz.Models
 @using Gotorz.Services
+@using Microsoft.AspNetCore.Authentication
+@using Microsoft.AspNetCore.Authentication.Cookies
 @using Microsoft.EntityFrameworkCore
 @using Microsoft.AspNetCore.Identity
-
+@using System.Security.Claims
 
 <h3>Login</h3>
-<div class="container">
-    <h3>Login</h3>
-    <div class="form-field-inline">
-        <label>Email:</label>
-        <div class="input-area">
-            <input type="text" required @bind="Email" class="form-control" />
+<EditForm Model="@Model" OnSubmit="@LoginCheck" FormName="LoginForm">
+    <div class="container">
+        <h3>Login</h3>
+        <div class="form-field-inline">
+            <label>Email:</label>
+            <div class="input-area">
+
+                <InputText type="text" required @bind-value="Model.Email" Placeholder="Email" class="form-control" />
+            </div>
         </div>
-    </div>
 
-    <div class="form-field-inline">
-        <label>Password: </label>
-        <div class="input-area">
-            <input type="password" required @bind="Password" class="form-control" />
+        <div class="form-field-inline">
+            <label>Password: </label>
+            <div class="input-area">
+
+                <InputText type="password" required @bind-value="Model.Password" placeholder="Password" class="form-control" />
+            </div>
         </div>
+
+        <p style="color:@loginColor">@loginText</p>
+
+        <button type="submit"> Login </button>
+
+        <p>Don't have an account? <a href="/register"> Register</a></p>
     </div>
-
-    <p style="color:@loginColor"> @loginText</p>
-
-    <button type="submit" @onclick="LoginCheck"> Login </button>
-
-    <p>Don't have an account? <a href="/register"> Register</a></p>
-</div>
+</EditForm>
 
 <img src="/images/gotorz.svg" alt="Travel image" class="bottom-right-image">
 
 
-
-
 @code {
-    private string Email { get; set; }
-    private string Password { get; set; }
+
+    [SupplyParameterFromForm]
+    public RegisterModel Model { get; set; } = new RegisterModel();
 
     string loginColor = "black";
     string loginText = "";
 
     private async Task LoginCheck()
     {
-        var user = await db.Users.FirstOrDefaultAsync(u => u.Email == Email);
+        var user = await db.Users.FirstOrDefaultAsync(u => u.Email == Model.Email);
 
-        //CHECK EMAIL AND PASSWORD HERE
-        if(user == null)
+        if (user == null)
         {
             loginColor = "red";
-            loginText = "User not found";
+            loginText = "User not found or invalid email/password.";
             return;
         }
-        var hasher = new PasswordHasher<RegisterModel>();
-        var hasherResult = hasher.VerifyHashedPassword(user, user.HashedPassword, Password);
 
-        if(hasherResult == PasswordVerificationResult.Success)
+        var hasher = new PasswordHasher<RegisterModel>();
+        var hasherResult = hasher.VerifyHashedPassword(user, user.HashedPassword, Model.Password);
+
+        if (hasherResult == PasswordVerificationResult.Success)
         {
             loginColor = "green";
-            loginText = "Succesful login";
-            authState.Login(user.Email,user.Role);
-            navigation.NavigateTo("/userPage");
+            loginText = "Successful login! Redirecting...";
 
+            // Update your custom auth state
+            authState.Login(user.Email, user.Role);
 
-            // TODO: Add session/token logic here
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.Name, user.Email),
+                new Claim(ClaimTypes.Role, user.Role),
+
+            };
+
+            var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+            var principal = new ClaimsPrincipal(identity);
+
+            var httpContext = HttpContextAccessor.HttpContext;
+            if (httpContext != null)
+            {
+                await httpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
+                navigation.NavigateTo("/UserPage");
+            }
+            else
+            {
+                loginColor = "red";
+                loginText = "Login failed: HttpContext not available.";
+            }
+        }
+        else if (hasherResult == PasswordVerificationResult.Failed)
+        {
+            loginColor = "red";
+            loginText = "User not found or invalid email/password.";
         }
         else
         {
+            loginColor = "orange";
+            loginText = "Login successful, but password needs re-hashing. Please contact support or try again later.";
             loginColor = "red";
-            loginText = "Invalid password";
-            
+            loginText = "Password format outdated. Login temporarily unavailable.";
         }
-
     }
 }

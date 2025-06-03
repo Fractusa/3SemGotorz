@@ -1,4 +1,5 @@
-﻿using Microsoft.Data.SqlClient;
+﻿using Microsoft.AspNetCore.Components.Web;
+using Microsoft.Data.SqlClient;
 
 namespace Gotorz.Services
 {
@@ -27,6 +28,8 @@ namespace Gotorz.Services
             UserEmail = null;
             NotifyStateChanged();
         }
+
+
 
         //Method to raise the OnChange event, when loginState changes
         private void NotifyStateChanged() => OnChange?.Invoke();

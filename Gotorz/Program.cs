@@ -3,7 +3,8 @@ using Gotorz.Data;
 using Gotorz.Services;
 using Microsoft.EntityFrameworkCore;
 using System.Globalization;
-
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -19,11 +20,22 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-builder.Services.AddScoped<AuthStateService>();
+builder.Services.AddSingleton<AuthStateService>();
 builder.Services.AddScoped<TravelAPIService>();
 
 builder.Services.AddHttpClient();
-builder.Services.AddControllersWithViews();
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
+    {
+        options.Cookie.Name = "auth_token";
+        options.LoginPath = "/login";
+        options.Cookie.MaxAge = TimeSpan.FromMinutes(30);
+
+    });
+builder.Services.AddAuthorization();
+builder.Services.AddCascadingAuthenticationState();
+builder.Services.AddHttpContextAccessor();
+
 
 var app = builder.Build();
 
@@ -35,9 +47,19 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
+app.MapGet("/account/logout", async (HttpContext context) =>
+{
+    await context.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+
+    return Results.Redirect("/");
+});
+
 app.UseHttpsRedirection();
 
 app.UseStaticFiles();
+
+app.UseAuthentication();
+app.UseAuthorization();
 app.UseAntiforgery();
 
 app.MapRazorComponents<App>()

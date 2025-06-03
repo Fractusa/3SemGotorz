@@ -1,4 +1,6 @@
-﻿<div class="top-row ps-3 navbar navbar-dark">
+﻿@using Microsoft.AspNetCore.Components.Authorization
+
+<div class="top-row ps-3 navbar navbar-dark">
     <div class="container-fluid">
         <a class="navbar-brand" href="">Gotorz</a>
     </div>
@@ -8,26 +10,39 @@
 
 <div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
     <nav class="flex-column">
-       
-
-
-
 
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
                 <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
             </NavLink>
         </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="login" Match="NavLinkMatch.All">
-                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Login
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="register" Match="NavLinkMatch.All">
-                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Register
-            </NavLink>
-        </div>
+
+        <AuthorizeView>
+            <Authorized>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="UserPage">
+                        <span class="bi bi-person-fill-nav-menu" aria-hidden="true"></span> My Page    
+                    </NavLink>
+                </div>
+
+            </Authorized>
+            <NotAuthorized>
+
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="login" Match="NavLinkMatch.All">
+                        <span class="bi bi-box-arrow-in-right-nav-menu" aria-hidden="true"></span> Login
+                    </NavLink>
+                </div>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="register" Match="NavLinkMatch.All">
+                        <span class="bi bi-person-plus-fill-nav-menu" aria-hidden="true"></span> Register
+                    </NavLink>
+                </div>
+            </NotAuthorized>
+        </AuthorizeView>
+
+
+
     </nav>
 </div>
 
