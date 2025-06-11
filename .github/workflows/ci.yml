@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     - name: Setup .NET SDK
       uses: actions/setup-dotnet@v3
@@ -34,7 +34,7 @@ jobs:
             --no-build
 
     - name: Upload Published Artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: published-app
         path: publish
