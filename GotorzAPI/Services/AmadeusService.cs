@@ -1,7 +1,6 @@
 ﻿using GotorzAPI.Models;
 using Microsoft.AspNetCore.Authentication.OAuth;
 using Newtonsoft.Json;
-using GotorzAPI.Models;
 using System.Text.Json.Serialization;
 using System.Text.Json;
 using Microsoft.Extensions.Options;
@@ -13,7 +12,7 @@ namespace GotorzAPI.Services
     public class AmadeusService
     {
         private HttpClient _httpClient;
-        private string accessToken;
+        private string? accessToken;
         private readonly string _apiKey;
         private readonly string _apiSecret;
 
