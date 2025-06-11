@@ -12,7 +12,7 @@ namespace GotorzAPI.Services
     public class AmadeusService
     {
         private HttpClient _httpClient;
-        private string? accessToken;
+        private string accessToken;
         private readonly string _apiKey;
         private readonly string _apiSecret;
 
