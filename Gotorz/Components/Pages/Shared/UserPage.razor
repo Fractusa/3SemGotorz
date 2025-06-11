@@ -11,34 +11,57 @@
 @inject IHttpContextAccessor HttpContextAccessor
 @implements IDisposable
 
-<h3>UserPage</h3>
-
-@if (authState.IsLoggedIn)
-{
-    <p>Welcome @authState.UserEmail</p>
-    <button @onclick=BookPackageRedirect>Book Travel Package</button>
-    <button @onclick=MessageInboxRedirect>Message Inbox</button>
-    <button @onclick=OrderHistoryRedirect>Order history</button>
-    <button @onclick=ChangePasswordRedirect>Change password</button>
-    <button @onclick="PerformLogout">Logout</button>
-
-}
-else
-{
-    <p>You are not logged in</p>
-}
-
-@if (authState.IsLoggedIn && authState.UserRole == "Employee")
-{
-    <p>@authState.UserRole</p>
-    <button @onclick=EmployeePanelRedirect>Employee panel</button>
-}
-else if (authState.IsLoggedIn && authState.UserRole == "Admin")
-{
-    <p>@authState.UserRole</p>
-    <button @onclick=EmployeePanelRedirect>Employee panel</button>
-    <button @onclick=AdminPanelRedirect>Admin panel</button>
-}
+<div class="app-container">
+    <header class="header">
+        <img src="/images/gotorz-icon-blue.png" alt="Gotorz Logo" class="top-left-image">
+        <button class="logout-button" @onclick="PerformLogout">Logout</button>
+    </header>
+    <div class="main-content">
+        @if (authState.IsLoggedIn)
+        {
+            <div class="welcome-box">
+                <p>Welcome!</p>
+                <p>@authState.UserEmail</p>
+            </div>
+            <div class="grid-container">
+                <button class="grid-item" @onclick="BookPackageRedirect">
+                    <img src="images/package-icon.png" alt="Travel Package Icon" />
+                    <span>Travel Packages</span>
+                </button>
+                <button class="grid-item" @onclick="MessageInboxRedirect">
+                    <img src="images/messages-icon.png" alt="Messages Icon" />
+                    <span>Messages</span>
+                </button>
+                <button class="grid-item" @onclick="OrderHistoryRedirect">
+                    <img src="images/orders-icon.png" alt="Orders Icon" />
+                    <span>Orders</span>
+                </button>
+                <button class="grid-item" @onclick="ChangePasswordRedirect">
+                    <img src="images/change-password-icon.png" alt="Change Password Icon" />
+                    <span>Change Password</span>
+                </button>
+                @if (authState.UserRole == "Employee" || authState.UserRole == "Admin")
+                {
+                    <button class="grid-item" @onclick="EmployeePanelRedirect">
+                        <img src="images/employee-icon.png" alt="Employee Panel Icon" />
+                        <span>Employee Panel</span>
+                    </button>
+                }
+                @if (authState.UserRole == "Admin")
+                {
+                    <button class="grid-item" @onclick="AdminPanelRedirect">
+                        <img src="images/admin-icon.png" alt="Admin Panel Icon" />
+                        <span>Admin Panel</span>
+                    </button>
+                }
+            </div>
+        }
+        else
+        {
+            <p>You are not logged in</p>
+        }
+    </div>
+</div>
 
 @code {
     protected override async Task OnInitializedAsync()
@@ -46,7 +69,6 @@ else if (authState.IsLoggedIn && authState.UserRole == "Admin")
         authState.OnChange += HandleAuthStateChanged;
         var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         var user = authenticationState.User;
-
         if (user.Identity != null && user.Identity.IsAuthenticated)
         {
             if (!authState.IsLoggedIn || authState.UserEmail != user.Identity.Name)
@@ -77,7 +99,6 @@ else if (authState.IsLoggedIn && authState.UserRole == "Admin")
         await InvokeAsync(StateHasChanged);
     }
 
-    //When the page is closed or redirected away from, this method unsubscribes the page from the OnChange event.
     public void Dispose()
     {
         authState.OnChange -= HandleAuthStateChanged;
@@ -85,15 +106,10 @@ else if (authState.IsLoggedIn && authState.UserRole == "Admin")
 
     private void PerformLogout()
     {
-        // Clear your client-side AuthStateService immediately for a responsive UI
-        // before the full navigation.
         if (authState.IsLoggedIn)
         {
             authState.Logout();
         }
-
-        // Navigate to the server-side logout endpoint.
-        // forceLoad: true ensures it's a full browser navigation, not Blazor's internal routing.
         navigation.NavigateTo("/account/logout", forceLoad: true);
     }
 
@@ -106,18 +122,22 @@ else if (authState.IsLoggedIn && authState.UserRole == "Admin")
     {
         navigation.NavigateTo("/employee");
     }
+
     private void MessageInboxRedirect()
     {
         navigation.NavigateTo("/messageInbox");
     }
+
     private void ChangePasswordRedirect()
     {
         navigation.NavigateTo("/change-password");
     }
+
     private void OrderHistoryRedirect()
     {
         navigation.NavigateTo("/order-history");
     }
+
     private void BookPackageRedirect()
     {
         navigation.NavigateTo("/bookPackage");
