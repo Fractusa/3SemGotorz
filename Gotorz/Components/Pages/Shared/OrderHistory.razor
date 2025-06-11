@@ -84,7 +84,7 @@ else
 
 }
 
-
+<button @onclick=UserPageRedirect>Back</button>
 
 @code {
     private List<Booking>? bookings;
@@ -116,5 +116,8 @@ else
             .ToListAsync();
     }
 
-
+    private void UserPageRedirect()
+    {
+        navigation.NavigateTo("/userPage");
+    }
 }

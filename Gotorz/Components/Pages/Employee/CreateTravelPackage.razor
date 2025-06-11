@@ -50,6 +50,7 @@
 </EditForm>
 
 <button class="btn btn-secondary mt-3" @onclick="SearchHotels">Search Hotels</button>
+<button class="btn btn-secondary mt-3" @onclick="EmployeePanelRedirect">Back</button>
 
 @if (showSuccessMessage)
 {
@@ -95,4 +96,8 @@
         }
     }
 
+    private void EmployeePanelRedirect()
+    {
+        navigation.NavigateTo("/employee");
+    }
 }
