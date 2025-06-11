@@ -28,10 +28,7 @@ jobs:
       run: dotnet test Gotorz/Gotorz.sln --configuration Release --no-build --verbosity normal
 
     - name: Publish Blazor Web App
-      run: dotnet publish Gotorz/Gotorz.csproj \
-            --configuration Release \
-            --output ./publish \
-            --no-build
+      run: dotnet publish Gotorz/Gotorz.csproj --configuration Release --output ./publish --no-build
 
     - name: Upload Published Artifact
       uses: actions/upload-artifact@v4
