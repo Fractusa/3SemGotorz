@@ -19,16 +19,16 @@ jobs:
         dotnet-version: '8.0.x'
 
     - name: Restore dependencies
-      run: dotnet restore ./3SemGotorz/Gotorz.sln
+      run: dotnet restore Gotorz/Gotorz.sln
 
     - name: Build solution
-      run: dotnet build ./3SemGotorz/Gotorz.sln --configuration Release --no-restore
+      run: dotnet build Gotorz/Gotorz.sln --configuration Release --no-restore
 
     - name: Run unit tests
-      run: dotnet test ./3SemGotorz/Gotorz.sln --configuration Release --no-build --verbosity normal
+      run: dotnet test Gotorz/Gotorz.sln --configuration Release --no-build --verbosity normal
 
     - name: Publish Blazor Web App
-      run: dotnet publish ./3SemGotorz/Gotorz/Gotorz.csproj \
+      run: dotnet publish Gotorz/Gotorz.csproj \
             --configuration Release \
             --output ./publish \
             --no-build
