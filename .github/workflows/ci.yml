@@ -1,0 +1,40 @@
+name: CI - build & test
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Setup .NET SDK
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: '8.0.x'
+
+    - name: Restore dependencies
+      run: dotnet restore ./3SemGotorz/Gotorz.sln
+
+    - name: Build solution
+      run: dotnet build ./3SemGotorz/Gotorz.sln --configuration Release --no-restore
+
+    - name: Run unit tests
+      run: dotnet test ./3SemGotorz/Gotorz.sln --configuration Release --no-build --verbosity normal
+
+    - name: Publish Blazor Web App
+      run: dotnet publish ./3SemGotorz/Gotorz/Gotorz.csproj \
+            --configuration Release \
+            --output ./publish \
+            --no-build
+
+    - name: Upload Published Artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: published-app
+        path: publish
